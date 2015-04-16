@@ -1,5 +1,5 @@
-# Learning Spark: Lightning-Fast Big Data Analysis Book Translate
-Learning Spark: Lightning-Fast Big Data Analysis Book Translate only for my educational purposes.
+# Learning Spark: Lightning-Fast Big Data Analysis book translation
+Translation the book of Learning Spark: Lightning-Fast Big Data Analysis is only for spark developer educational purposes.
 If I violated your copyright, please let me know.
 
 《Learning Spark: Lightning-Fast Big Data Analysis》的中文翻译纯属个人对于Spark的兴趣，仅供学习。
