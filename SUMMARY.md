@@ -1,5 +1,5 @@
 # Summary
 
 * [introduction](README.md)
-* [LearningSpark](SUMMARY.md)
-* [cover](cover.jpg)
+* [Chapter 01](SUMMARY.md)
+* [Chapter 02](cover.jpg)
