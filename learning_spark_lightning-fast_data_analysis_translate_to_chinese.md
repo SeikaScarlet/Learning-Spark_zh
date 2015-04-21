@@ -1,2 +1,2 @@
-# Learning Spark: LIGHTNING-FAST DATA ANALYSIS translation to Chinese
+# Learning Spark: LIGHTNING-FAST DATA ANALYSIS 中文翻译
 
