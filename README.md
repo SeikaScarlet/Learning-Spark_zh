@@ -1,5 +1,5 @@
 # Learning Spark: Lightning-Fast Big Data Analysis reading notes
-Reading note for the book of Learning Spark: Lightning-Fast Big Data Analysis is only for spark developer educational purposes.
+Reading notes for the book of Learning Spark: Lightning-Fast Big Data Analysis is only for spark developer educational purposes.
 
 《Learning Spark: Lightning-Fast Big Data Analysis》的中文读书笔记纯属个人对于Spark的兴趣，仅供学习。
 
