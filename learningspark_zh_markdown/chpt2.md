@@ -2,43 +2,39 @@
 # 第二章 Spark 快速入门
 ***
 
-In this chapter we will walk through the process of downloading and running Spark in local mode on a single computer. This chapter was written for anybody who is new to Spark, including both data scientists and engineers.
-
-本章的主要内容包括 Spark 的下载和本地模式的单机运行，主要面向于新接触 Spark 的数据科学家和工程师。
+Ⓔ In this chapter we will walk through the process of downloading and running Spark in local mode on a single computer. This chapter was written for anybody who is new to Spark, including both data scientists and engineers.
 
 Spark can be used from Python, Java, or Scala. To benefit from this book, you don’t need to be an expert programmer, but we do assume that you are comfortable with the basic syntax of at least one of these languages. We will include examples in all languages wherever possible.
 
-Spark 支持 Python、Java 和 Scala 编程语言。您无需是专家级的编程者即可从本书中受益，我们假设您已熟悉三种编程语言之一。我们尽量将所有的示例都用三种编程语言表达。
-
-
 Spark itself is written in Scala, and runs on the Java Virtual Machine (JVM). To run Spark on either your laptop or a cluster, all you need is an installation of Java 6 or newer. If you wish to use the Python API you will also need a Python interpreter (version 2.6 or newer). Spark does not yet work with Python 3.
 
-Spark 本身用 Scala 语言编写，运行于 Java 虚拟机（JVM）。只要在安装了 Java 6 以上版本的便携式计算机或者集群上都可以运行 spark。如果您想使用 Python API 需要安装 Python 解释器（2.6 或者更高版本），请注意 Spark 暂不支持 Python 3。
+Ⓒ 本章主要介绍 Spark 的下载和本地单机模式下的运行方法。本章面向 Spark 初学者，包括数据科学家和工程师。
+
+Ⓒ Spark 支持 Python、Java 和 Scala 语言。即便您不是专业的编程者也会从本书中受益，但我们仍然假定您已熟悉其中至少一个语言的基本语法。我们将在示例中尽量提供这三种编程语言的版本。
+
+Ⓒ Spark 由 Scala 语言编写而成，并需要 Java 虚拟机 (Java Virtual Machine, JVM) 才能运行。不管是在笔记本上还是集群上运行 Spark，您都需要安装 Java 6 以上版本的编译环境。如果您想使用 Python API，还需要安装 Python 解释器（2.6 或者更高版本）。请注意 Spark 暂不支持 Python 3。
 
 # 下载 Spark
 
-The first step to using Spark is to download and unpack it. Let’s start by downloading a recent precompiled released version of Spark. Visit http://spark.apache.org/down loads.html, select the package type of “Pre-built for Hadoop 2.4 and later,” and click “Direct Download.” This will download a compressed TAR file, or tarball, called spark-1.2.0-bin-hadoop2.4.tgz.
+The first step to using Spark is to download and unpack it. Let’s start by downloading a recent precompiled released version of Spark. Visit *http://spark.apache.org/downloads.html*, select the package type of “Pre-built for Hadoop 2.4 and later,” and click “Direct Download.” This will download a compressed TAR file, or tarball, called spark-1.2.0-bin-hadoop2.4.tgz.
 
-首先下载 Spark 并解压，我们从下载预编译版本的 Spark 开始。在浏览器中访问 http://spark.apache.org/down loads.html 选择“Pre-built for Hadoop 2.4 and later ” 安装包，点击 “ Direct Download ” 下载名称为 spark-1.2.0-bin-hadoop2.4.tgz 的压缩包。
+使用Spark的第一步是下载并解压开来。我们从下载一个新近预编译版本的 Spark 开始。在浏览器中访问 *http://spark.apache.org/downloads.html* 选择“Pre-built for Hadoop 2.4 and later ” 安装包，点击 “ Direct Download ” 下载名称为 spark-1.2.0-bin-hadoop2.4.tgz 的压缩包。
 
-> Windows users may run into is
+> Windows users may run into issues installing Spark into a directory with a space in the name. Instead, install Spark in a directory with no space (e.g., ```C:\spark```).
 
-
-sues installing Spark into a directory with a space in the name. Instead, install Spark in a directory with no space (e.g., C:\spark).
-
-> 用户安装时可能会遇到文件夹名称中包含空格的问题，建议 Spark 的安装目录的文件夹中不包含空格，比如 C:\spark 。
+> 用户安装时可能会遇到文件夹名称中包含空格的问题，建议 Spark 的安装目录的文件夹中不包含空格，比如 ```C:\spark``` 。
 
 You don’t need to have Hadoop, but if you have an existing Hadoop cluster or HDFS installation, download the matching version. You can do so from http://spark.apache.org/downloads.html by selecting a different package type, but they will have slightly different filenames. Building from source is also possible; you can find the latest source code on GitHub or select the package type of “Source Code” when downloading.
 
-您不需要安装 Hadoop 即可运行 Spark ，但是如果您已有 Hadoop 集群或者 HDFS 则需要下载对应的 Spark 版本 。 您可在 http://spark.apache.org/downloads.html 选择不同的安装包，这些安装包的文件名会有所不同。也可以将 Spark 源码重新编译，您可在 Github 下载最新的 Spark 源代码。
+您不需要安装 Hadoop 即可运行 Spark ，但是如果您已有 Hadoop 集群或安装了 HDFS 则需要下载对应的 Spark 版本 。 您可在 http://spark.apache.org/downloads.html 选择不同的安装包，它们的文件名会略有不同；或者在 Github 下载最新的 Spark 源代码进行编译安装。
 
 > Most Unix and Linux variants, including Mac OS X, come with a command-line tool called tar that can be used to unpack TAR files. If your operating system does not have the  tar command installed, try searching the Internet for a free TAR extractor—for example, on Windows, you may wish to try 7-Zip.
 
 > 大多数 Unix 和 Linux 操作系统，包括 Mac OS X，都包含 tar 命令行解压工具。如果您的操作系统没有安装 tar 的命令行工具，请在互联网搜索免费的解压缩工具。比如在 Windows 系统中您可以使用 7-Zip。
 
-Now that we have downloaded Spark, let’s unpack it and take a look at what comes with the default Spark distribution. To do that, open a terminal, change to the directory where you downloaded Spark, and untar the file. This will create a new directory with the same name but without the final .tgz suffix. Change into that directory and see what’s inside. You can use the following commands to accomplish all of that:
+Now that we have downloaded Spark, let’s unpack it and take a look at what comes with the default Spark distribution. To do that, open a terminal, change to the directory where you downloaded Spark, and untar the file. This will create a new directory with the same name but without the final ```.tgz``` suffix. Change into that directory and see what’s inside. You can use the following commands to accomplish all of that:
 
-现在我们将已下载的 Spark 解压缩，看看默认的 Spark 分布式。打开终端，切换至下载 Spark 的目录下将其解压缩。执行下面的代码将创建一个与压缩文件同名的新目录。
+当Spark下载好后， 解压缩可以看到Spark默认带有哪些内容。打开终端，切换至下载 Spark 的目录下将其解压。执行下面的代码将创建一个与压缩文件同名的新目录（没有```.tgz```后缀）。使用已下语句，您可以进入该文件夹查看里面的内容：
 
 ```
 cd ~
@@ -46,9 +42,10 @@ tar -xf spark-1.2.0-bin-hadoop2.4.tgz
 cd spark-1.2.0-bin-hadoop2.4
 ls
 ```
+
 In the line containing the ```tar``` command, the ```x``` flag tells ```tar``` we are extracting files, and the ```f``` flag specifies the name of the tarball. The ```ls``` command lists the contents of the Spark directory. Let’s briefly consider the names and purposes of some of the more important files and directories you see here that come with Spark:
 
-在包含 ```tar``` 的执行命令中，```x``` 表示解压缩，```f``` 表示指定 ```tar``` 包名称。```ls``` 命令将列出 Spark 目录下的所有文件。让我们简要介绍下 Spark 目录中的重要文件。
+在 ```tar -xf spark-1.2.0-bin-hadoop2.4.tgz``` 命令中，```x``` 表示解压缩，```f``` 表示指定 ```tar``` 包名称。```ls``` 命令将列出 Spark 目录下的所有文件。让我们简要介绍下 Spark 目录中的重要文件。
 
 *README.md*
       Contains short instructions for getting started with Spark.
@@ -65,83 +62,80 @@ In the line containing the ```tar``` command, the ```x``` flag tells ```tar``` w
 
 Don’t worry about the large number of directories and files the Spark project comes with; we will cover most of these in the rest of this book. For now, let’s dive right in and try out Spark’s Python and Scala shells. We will start by running some of the examples that come with Spark. Then we will write, compile, and run a simple Spark job of our own.
 
-读者不必对 Spark 工程中包含的如此多的目录和文件所困扰，本书后续章节会涵盖其中的大部分技术内容。现在，让我们深入 Spark 的 Python 和 Scala 交互式 shell。我们将从运行 Spark 官方示例开始，然后编写和运行自己的 Spark 作业。
+读者不必对 Spark 文件夹下众多文件和目录困扰，本书后续章节会涵盖其中的大部分技术内容。现在，我们先深入 Spark 的 Python 和 Scala 交互式 shell。我们将从运行 Spark 官方示例开始，然后编写和运行自己的 Spark 任务。
 
 All of the work we will do in this chapter will be with Spark running in local mode; that is, nondistributed mode, which uses only a single machine. Spark can run in a variety of different modes, or environments. Beyond local mode, Spark can also be run on Mesos, YARN, or the Standalone Scheduler included in the Spark distribution. We will cover the various deployment modes in detail in Chapter 7.
 
-本章中的 Spark 作业运行于单机模式，即在本地计算机运行的非分布式的模式。Spark 可在不同模式不同环境中运行。除了单机模式，Spark 还可运行于 Mesos 和 YARN ，以及 Spark 分布式下的独立调度。我们将在第七章中详细介绍各种部署模式。
+本章我们要做的是让 Spark 在本地环境下运行起来，即本地计算机非分布式的模式。Spark 可以以不同模式在不同环境中运行。除了单机模式，Spark 还可运行于 Mesos、 YARN ，或在 Spark 分布式下独立调度 (Standalone Schedule)。我们将在第七章中详细介绍各种部署模式。
 
-# Spark 的 Python 和 Scala 交互式 Shell
+# Introduction to Spark's Python and Scala Shells   ||   Spark 的 Python 和 Scala 交互式 Shell
 
-Spark comes with interactive shells that enable ad hoc data analysis. Spark’s shells will feel familiar if you have used other shells such as those in R, Python, and Scala, or operating system shells like Bash or the Windows command prompt.
+Ⓔ Spark comes with interactive shells that enable ad hoc data analysis. Spark’s shells will feel familiar if you have used other shells such as those in R, Python, and Scala, or operating system shells like Bash or the Windows command prompt.
 
-Spark 的交互式 shell 支持可执行的数据分析。如果您使用其他的 shell 编程，那么您将会对 Spark shell 感觉很亲切。比如 R、Python 和 Scala shell，以及批处理的操作系统编程或者 Windows 命令提示符。
+Ⓔ Unlike most other shells, however, which let you manipulate data using the disk and memory on a single machine, Spark’s shells allow you to interact with data that is distributed on disk or in memory across many machines, and Spark takes care of automatically distributing this processing.
 
-Unlike most other shells, however, which let you manipulate data using the disk and memory on a single machine, Spark’s shells allow you to interact with data that is distributed on disk or in memory across many machines, and Spark takes care of automatically distributing this processing.
+Ⓔ Because Spark can load data into memory on the worker nodes, many distributed computations, even ones that process terabytes of data across dozens of machines, can run in a few seconds. This makes the sort of iterative, ad hoc, and exploratory analysis commonly done in shells a good fit for Spark. Spark provides both Python and Scala shells that have been augmented to support connecting to a cluster.
 
-与其他的 Shell 编程只能操作单台计算机的磁盘和内存不同的是，Spark Shell支持跨多台计算机的分布式磁盘和内存计算，并且 Spark 会自动执行分布式作业处理。
+Ⓒ Spark 的交互式 shell 支持可执行的数据分析。如果您使用其他的 shell 编程，那么您将会对 Spark shell 感觉很亲切。比如 R、Python 和 Scala shell，以及批处理的操作系统编程或者 Windows 命令提示符。
 
-Because Spark can load data into memory on the worker nodes, many distributed computations, even ones that process terabytes of data across dozens of machines, can run in a few seconds. This makes the sort of iterative, ad hoc, and exploratory analysis commonly done in shells a good fit for Spark. Spark provides both Python and Scala shells that have been augmented to support connecting to a cluster.
+Ⓒ 与其他的 Shell只能操作单台计算机的磁盘和内存不同的是，Spark Shell支持跨多台计算机的分布式磁盘和内存计算，并且 Spark 会自动执行分布式作业处理。
 
-因为Spark将数据加载至工作节点内存中，绝大多数分布式计算甚至处理TB级的数据也仅需几秒钟。这使得 Spark 适合处理迭代排序、随机和未知分析。Spark 的 Python 和 Scala 的 shell 均支持集群连接。
+Ⓒ 因为Spark将数据加载至工作节点内存中，绝大多数分布式计算甚至处理TB级的数据也仅需几秒钟。这使得 Spark 适合处理迭代排序、随机和未知分析。Spark 的 Python 和 Scala 的 shell 均支持集群连接。
 
-> Most of this book includes code in all of Spark’s languages, but interactive shells are available only in Python and Scala. Because a shell is very useful for learning the API, we recommend using one of these languages for these examples even if you are a Java developer. The API is similar in every language.
+> Ⓔ Most of this book includes code in all of Spark’s languages, but interactive shells are available only in Python and Scala. Because a shell is very useful for learning the API, we recommend using one of these languages for these examples even if you are a Java developer. The API is similar in every language.
 
-> 本书中大部分代码包含 Spark 支持的所有语言，但是交互式 shell 仅支持 Python 和 Scala 语言。因为 shell 是非常有效的学习 API 的方法，我们建议您使用本书中 Python 或者 Scala 语言的示例学习，即使您是一位 Java 开发者。每种语言的 API 差别都不大。
+> Ⓒ  本书中大部分代码包含 Spark 支持的所有语言，但是交互式 shell 仅支持 Python 和 Scala 语言。因为 shell 是非常有效的学习 API 的方法，我们建议您使用本书中 Python 或者 Scala 语言的示例学习，即使您是一位 Java 开发者。每种语言的 API 差别都不大。
 
-The easiest way to demonstrate the power of Spark’s shells is to start using one of them for some simple data analysis. Let’s walk through the example from the Quick Start Guide in the official Spark documentation.
+Ⓔ The easiest way to demonstrate the power of Spark’s shells is to start using one of them for some simple data analysis. Let’s walk through the example from the Quick Start Guide in the official Spark documentation.
 
-让我们用一个简单的数据分析的例子来感受一下 spark shell 的强大，按照Spark 官方文档的快速入门的步骤。
+Ⓒ 简单数据处理任务也能轻而易举的显现出Spark Shell的强大功能。让我们用 Saprk 官方文档提供的快速上手指南的案例来体验一下。
 
-The first step is to open up one of Spark’s shells. To open the Python version of the Spark shell, which we also refer to as the PySpark Shell, go into your Spark directory and type:
+Ⓔ The first step is to open up one of Spark’s shells. To open the Python version of the Spark shell, which we also refer to as the PySpark Shell, go into your Spark directory and type:
 
-首先打开 Spark 交互式 shell。若要打开 Python 版本的 Spark shell，即PySpark shell，在 Spark 目录中输入如下指令：
+Ⓒ 首先打开 Spark 交互式 shell。若要打开 Python 版本的 Spark shell，即PySpark shell，在 Spark 目录中输入如下指令：
 
 ```
 bin/pyspark
 ```
 
-(Or ```bin\pyspark``` in Windows.) To open the Scala version of the shell, type:
-(或者在 Windows 中输入 ```bin\pyspark``` ) 打开 Scala 版本的 shell，输入：
+Ⓔ (Or ```bin\pyspark``` in Windows.) To open the Scala version of the shell, type:
+
+Ⓒ (或者在 Windows 中输入 ```bin\pyspark``` ) 打开 Scala 版本的 shell，输入：
 
 ```
 bin/spark-shell
 ```
 
-The shell prompt should appear within a few seconds. When the shell starts, you will notice a lot of log messages. You may need to press Enter once to clear the log output and get to a shell prompt. Figure 2-1 shows what the PySpark shell looks like when you open it.
+Ⓔ The shell prompt should appear within a few seconds. When the shell starts, you will notice a lot of log messages. You may need to press Enter once to clear the log output and get to a shell prompt. *Figure 2-1* shows what the PySpark shell looks like when you open it.
 
-shell 提示符应在几秒钟后出现。当 shell 启动时，您会注意到有大量的日志消
-息提示。您可按下Enter键清除日志输出，图2-1显示的是打开PySpark shell
-的显示界面。
+Ⓒ Shell 提示符会在几秒钟后出现。当 shell 启动时，您会看到很多日志消息，可以按下Enter键清除日志回到提示符。*图2-1*显示了打开PySpark shell的界面。
 
 insert fig 2-1 here
 *Figure 2-1. The PySpark shell with default logging output*
 *图 2-1 PySpark shell 的默认日志输出*
 
-You may find the logging statements that get printed in the shell distracting. You can control the verbosity of the logging. To do this, you can create a file in the conf directory called ```log4j.properties```. The Spark developers already include a template for this file called ```log4j.properties.template```. To make the logging less verbose, make a copy of ```conf/log4j.properties.template``` called ```conf/log4j.properties``` and find the following line:
+Ⓔ You may find the logging statements that get printed in the shell distracting. You can control the verbosity of the logging. To do this, you can create a file in the conf directory called ```log4j.properties```. The Spark developers already include a template for this file called ```log4j.properties.template```. To make the logging less verbose, make a copy of ```conf/log4j.properties.template``` called ```conf/log4j.properties``` and find the following line:
 
-在 shell 中您可以看到打印的日志信息，您也可以控制日志的详细程度。在```conf```
-目录中创建名称为 ```log4j.properties``` 的文件，Spark 提供了该文件的模板```log4j.properties.template```。若不需要输出那么冗长的日志，您可以复制该模板并将其改名为 ```log4j.properties``` ， 在模板的复制文件中找到下面的代码：
+Ⓒ 在 shell 中您可以看到打印的日志信息，您也可以控制日志的详细程度。在```conf```目录中创建名称为 ```log4j.properties``` 的文件，Spark 提供了该文件的模板```log4j.properties.template```。若不需要输出那么冗长的日志，您可以复制该模板并将其改名为 ```log4j.properties``` ， 在模板的复制文件中找到下面的代码：
 
 ```
 log4j.rootCategory=INFO, console
 ```
-Then lower the log level so that we show only the WARN messages, and above by changing it to the following:
-降低日志的级别只显示**警告**信息，将上面的代码修改如下：
+Ⓔ Then lower the log level so that we show only the WARN messages, and above by changing it to the following:
+Ⓒ 降低日志的级别只显示**警告**信息，将上面的代码修改如下：
 ```
 log4j.rootCategory=WARN, console
 ```
-When you reopen the shell, you should see less output (Figure 2-2).
-重新打开 shell，您可以看见输出信息减少了。
+Ⓔ When you reopen the shell, you should see less output (Figure 2-2).
+Ⓒ 重新打开 shell，您可以看见输出信息减少了。
 
-insert fig 2-2 here
-
+**insert fig 2-2 here**
 *Figure 2-2. The PySpark shell with less logging output*
 *图 2-2. PySpark shell  输出信息减少*
 
 ---
 
->**Using IPython**
+>**Ⓔ Using IPython**
 IPython is an enhanced Python shell that many Python users prefer, offering features such as tab completion. You can find instructions for installing it at http://ipython.org. You can use IPython with Spark by setting the  IPYTHON environment variable to 1:
 ```
 IPYTHON=1 ./bin/pyspark
@@ -157,7 +151,7 @@ bin\pyspark
 
 ---
 
->**使用 IPython**
+>**Ⓒ 使用 IPython**
 IPython 是颇受 python 使用者追捧的增强版 Python shell，提 供 诸 如 tab 键 完 成 功 能 。 更 多 信 息 请 查 看
 http://ipython.org 。将 IPYTHON 的环境变量设置为 1 即可在 Spark 中使用 ```IPython```。
 ```
@@ -175,15 +169,13 @@ bin\pyspark
 
 ---
 
-In Spark, we express our computation through operations on distributed collections that are automatically parallelized across the cluster. These collections are called resilient distributed datasets, or RDDs. RDDs are Spark’s fundamental abstraction for distributed data and computation.
+Ⓔ In Spark, we express our computation through operations on distributed collections that are automatically parallelized across the cluster. These collections are called resilient distributed datasets, or RDDs. RDDs are Spark’s fundamental abstraction for distributed data and computation.
 
-在 Spark 中我们通过操作集群的分布式集合进行自动化并行计算，这些集合被称为弹
-性分布式数据集，或者 RDDs。RDDs 是 Spark 做分布式数据和计算的基础抽象。
+Ⓒ 在 Spark 中我们的计算时通过对集群间自动并行的分布式集合上进行操作的，这些集合被称为弹性分布数据集(resilient distributed datasets, RDDs)。RDD 是 Spark 做分布式数据和计算的基本抽象概念。
 
-Before we say more about RDDs, let’s create one in the shell from a local text file and do some very simple ad hoc analysis by following *Example 2-1* for Python or *Example 2-2* for Scala.
+Ⓔ Before we say more about RDDs, let’s create one in the shell from a local text file and do some very simple ad hoc analysis by following *Example 2-1* for Python or *Example 2-2* for Scala.
 
-在详细探讨 RDD 之前，我们先创建一个 shell 程序读取本地文本文件并计算简单
-的特定分析。下面的*示例 2-1* 是 Python 语音，*示例 2-2* 是 Scala 语言。
+Ⓒ 在详细探讨 RDD 之前，我们先创建一个 shell 程序读取本地文本文件并计算简单的特定分析。下面的*示例 2-1* 是 Python 语音，*示例 2-2* 是 Scala 语言。
 
 *Example 2-1. Python line count  |  示例 2-1. Python line count*
 ```
