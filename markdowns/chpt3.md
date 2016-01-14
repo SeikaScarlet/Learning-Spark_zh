@@ -33,6 +33,7 @@
 
 *Example 3-2. Calling the filter() transformation*
 示例 3-2 ：调用 ```filter()``` 变换
+
 ```
 >>> pythonLines = lines.filter(lambda line: "Python" in line)
 ```
@@ -43,6 +44,7 @@
 
 *Example 3-3. Calling the ```first()``` action*
 *示例 3-3 ：调用 ```first()``` 动作*
+
 ```
 >>> pythonLines.first()
 u'## Interactive Python Shell'
@@ -144,78 +146,885 @@ Example 3-10. textFile() method in Java
 JavaRDD<String> lines = sc.textFile("/path/to/README.md");
 ```
 
-# RDD Operations
+# RDD Operations   ||   RDD 操作
 
-## Transformations
+Ⓔ As we’ve discussed, RDDs support two types of operations: transformations and actions. Transformations are operations on RDDs that return a new RDD, such as map() and  filter() . Actions are operations that return a result to the driver program or write it to storage, and kick off a computation, such as  count() and  first() . Spark treats transformations and actions very differently, so understanding which type of operation you are performing will be important. If you are ever confused whether a given function is a transformation or an action, you can look at its return type: transformations return RDDs, whereas actions return some other data type.
+
+Ⓒ 我们已经提到过，RDD 支持两种类型的操作：变换和动作。变换是对一个 RDD 进行操作得到一个新的 RDD，如 map()和 filter()。动作是返回一个结果到驱动程序或者写入到存储并开始计算的操作，如 count()和 first()。Spark 对待变换和动作很不一样，所以理解你要执行的是何种操作十分重要。如果你对一个给定的函数是变换还是动作还有些混淆，那就看它的返回类型。返回 RDD 的就是变换，反之，动作是返回其他类型。
+
+## Transformations   ||   变换
+
+ⒺTransformations are operations on RDDs that return a new RDD. As discussed in “Lazy Evaluation” on page 29, transformed RDDs are computed lazily, only when you use them in an action. Many transformations are element-wise; that is, they work on one element at a time; but this is not true for all transformations.
+
+Ⓒ 变换是对一个 RDD 进行操作得到一个新的 RDD。如 29 的“延迟计算”中讨论的一样，RDD 的变换计算是会延迟的，直到你在一个动作中用到。大多数变换都是元素级的，也就是说，每次处理一个元素，但不是所有变换都这样。
+
+Ⓔ As an example, suppose that we have a logfile, log.txt, with a number of messages, and we want to select only the error messages. We can use the  filter() transformation seen before. This time, though, we’ll show a filter in all three of Spark’s language APIs (Examples 3-11 through 3-13).
+
+Ⓒ 看个例子。假设我们有个日志文件 log.txt，里面有些日志消息。我们想仅选择出错误消息。可以用之前见过的 filter()变换。这次我们用 Spark 的所有三种语言API 来展示 filter 的用法（见示例 3-11 到 3-13）。
+
+*Example 3-11. filter() transformation in Python*
+```
+inputRDD = sc.textFile("log.txt")
+errorsRDD = inputRDD.filter(lambda x: "error" in x)
+```
+*Example 3-12. filter() transformation in Scala*
+```
+val inputRDD = sc.textFile("log.txt")
+val errorsRDD = inputRDD.filter(line => line.contains("error"))
+```
+*Example 3-13. filter() transformation in Java*
+```
+JavaRDD<String> inputRDD = sc.textFile("log.txt");
+JavaRDD<String> errorsRDD = inputRDD.filter(
+  new Function<String, Boolean>() {
+    public Boolean call(String x) { return x.contains("error"); }
+  }
+});
+```
+
+Ⓔ Note that the  filter() operation does not mutate the existing  inputRDD . Instead, it returns a pointer to an entirely new RDD.  inputRDD can still be reused later in the program—for instance, to search for other words. In fact, let’s use  inputRDD again to search for lines with the word warning in them. Then, we’ll use another transformation,  union() , to print out the number of lines that contained either error or warning. We show Python in Example 3-14, but the  union() function is identical in all three languages.
+
+Ⓒ 注意这里的 ```filter()``` 操作并没改变已存在的 ```inputRDD```，相反，它返回了整个新 RDD 的指针。InputRDD 仍然可以在后面的程序中重用－比如要查找别的词。实际上，让我们再来用这个 RDD 找包含词语”warning”的行。然后我们用另一个变换 union 来打印这些包含了”error”或者”warning”的行。在示例 3-14 中我们是用 Python 展示，但是 union 在所有的三种语言中都支持。
+
+*Example 3-14. union() transformation in Python*
+```
+errorsRDD = inputRDD.filter(lambda x: "error" in x)
+warningsRDD = inputRDD.filter(lambda x: "warning" in x)
+badLinesRDD = errorsRDD.union(warningsRDD)
+```
+
+Ⓔ union() is a bit different than  filter() , in that it operates on two RDDs instead of
+one. Transformations can actually operate on any number of input RDDs.
+
+Ⓒ union 和 filter 变换有一点点不同，它是对两个 RDD 操作，而不是一个。实际上
+变换可以对任意个输入 RDD 进行操作。
+
+> Ⓔ A better way to accomplish the same result as in Example 3-14
+would be to simply filter the  inputRDD once, looking for either
+error or warning.
+
+> Ⓒ 达到示例 3-14 同样结果的更好的方式是只过滤 inputRDD 一次，查找”error”或
+者”warning”。
+
+Ⓔ Finally, as you derive new RDDs from each other using transformations, Spark keeps track of the set of dependencies between different RDDs, called the lineage graph. It uses this information to compute each RDD on demand and to recover lost data if part of a persistent RDD is lost. Figure 3-1 shows a lineage graph for Example 3-14.
+
+Ⓒ 最终，从 RDD 的相互变换形成了新的 RDD，Spark 跟踪了这些不同 RDD 之间的依赖关系的集合，称之为血统图(lineage graph)。Spark 用这个信息来根据需要计算每个 RDD，并恢复丢失的数据，如果持久化的 RDD 的一部分丢失了的话。图 3-1 展示了示例 3-14 的血统图。
+
+![fig.3-1](../images/fig_3-1.png)
+*Figure 3-1. RDD lineage graph created during log analysis*
+*图 3-1. 日志分析中创建的 RDD 血统图*
+
 ## Actions
-## Lazy Evaluation
+
+Ⓔ We’ve seen how to create RDDs from each other with transformations, but at some point, we’ll want to actually *do something* with our dataset. Actions are the second type of RDD operation. They are the operations that return a final value to the driver program or write data to an external storage system. Actions force the evaluation of the transformations required for the RDD they were called on, since they need to actually produce output.
+
+Ⓒ 我们已经知道如何从各种变化创建 RDD，但有时候我们想实际对数据*做点什么*。动作是第二种操作。它们是返回一个最终值给驱动程序或者写入外部存储系统的操作。动作迫使对调用的 RDD 的变换请求进行求值，因为需要实际产生输出。
+
+Ⓔ Continuing the log example from the previous section, we might want to print out some information about the ```badLinesRDD``` . To do that, we’ll use two actions, ```count()``` , which returns the count as a number, and ```take()``` , which collects a number of elements from the RDD, as shown in *Examples 3-15* through *3-17*.
+
+Ⓒ 继续前一章的日志的例子，我们想打印一些关于 ```badlinesRDD``` 的信息。为此，我们将使用 ```count()``` 和 ```take()``` 两个动作。```count()```将返回其中的记录数，而 ```take()```返回RDD 中的一些元素，见例子 *3-15* 至 *3-17*。
+
+*Example 3-15. Python error count using actions*
+```
+print "Input had " + badLinesRDD.count() + " concerning lines"
+print "Here are 10 examples:"
+for line in badLinesRDD.take(10):
+print line
+```
+
+*Example 3-16. Scala error count using actions*
+```
+println("Input had " + badLinesRDD.count() + " concerning lines")
+println("Here are 10 examples:")
+badLinesRDD.take(10).foreach(println)
+```
+
+*Example 3-17. Java error count using actions*
+```
+System.out.println("Input had " + badLinesRDD.count() + " concerning lines")
+System.out.println("Here are 10 examples:")
+for (String line: badLinesRDD.take(10)) {
+  System.out.println(line);
+}
+```
+
+Ⓔ In this example, we used  take() to retrieve a small number of elements in the RDD
+at the driver program. We then iterate over them locally to print out information at
+the driver. RDDs also have a  collect() function to retrieve the entire RDD. This can
+be useful if your program filters RDDs down to a very small size and you’d like to
+deal with it locally. Keep in mind that your entire dataset must fit in memory on a
+single machine to use  collect() on it, so  collect() shouldn’t be used on large
+datasets.
+
+Ⓒ 本例中，我们在驱动程序中用 take()来获取 RDD 中少量的元素，然后在本地遍
+历这些元素并打印出来。RDD 也有 collect()函数可以获取所有的元素。如果你的
+程序将 RDD 过滤到一个比较小的数据集并且想要在本地处理时，collect()会有
+用。记住，你使用 collec()的话整个数据集必须适合单机的内存大小，所以 collect()
+不适合对大数据集使用。
+
+Ⓔ In most cases RDDs can’t just be  collect() ed to the driver because they are too
+large. In these cases, it’s common to write data out to a distributed storage system
+such as HDFS or Amazon S3. You can save the contents of an RDD using the
+saveAsTextFile() action,  saveAsSequenceFile() , or any of a number of actions for
+various built-in formats. We will cover the different options for exporting data in
+Chapter 5.
+
+Ⓒ 大多数情况下，RDD 都不能 collect()到驱动程序，因为 RDD 一般都太大。这样
+的话，通常是将所有数据输出到分布式存储系统中，如 HDFS 或 S3 等。你可以
+用 saveAsTextFile()，saveAsSequenceFile()或者任何其他各种内置格式的动作来保
+存 RDD 的内容。我们会在第五章讨论数据输出的不同选择。
+
+Ⓔ It is important to note that each time we call a new action, the entire RDD must be
+computed “from scratch.” To avoid this inefficiency, users can persist intermediate
+results, as we will cover in “Persistence (Caching)” on page 44.
+
+Ⓒ 值得注意的是，每次我们调用一个新动作，整个 RDD 都必须“从头开始”计算。
+要避免低效，用户可以像 44 页提到的“持久化（缓存）”那样持久化中间结果。
+
+## Lazy Evaluation   |||   ？？评估
+
+Ⓔ As you read earlier, transformations on RDDs are lazily evaluated, meaning that Spark will not begin to execute until it sees an action. This can be somewhat counter intuitive for new users, but may be familiar for those who have used functional languages such as Haskell or LINQ-like data processing frameworks.
+
+Ⓒ 如前所述，RDD 的变换是延迟求值，这意味着 Spark 直到看到一个动作才会进行求值。这对新用户来说可能有点反直觉，而使用过函数语言如 Haskell 或 LINQ-like 之类数据处理框架的用户会熟悉一些
+
+Ⓔ Lazy evaluation means that when we call a transformation on an RDD (for instance, calling  map() ), the operation is not immediately performed. Instead, Spark internally records metadata to indicate that this operation has been requested. Rather than thinking of an RDD as containing specific data, it is best to think of each RDD as consisting of instructions on how to compute the data that we build up through transformations. Loading data into an RDD is lazily evaluated in the same way transformations are. So, when we call  sc.textFile() , the data is not loaded until it is necessary. As with transformations, the operation (in this case, reading the data) can occur multiple times.
+
+Ⓒ 延迟求值表示当我们对 RDD 调用变换时（比如 ```map()```)，该操作不会立即执行。相反的，Spark 内部记录元数据来指明该操作被请求。与其认为 RDD 包含了特殊的数据，不如认识 RDD 是由累积的数据变换如何计算的指令组成。加载数据到 RDD 也是一样的。所以我们调用 ```sc.textFile()``` 的时候数据直到有必要时才实际加载。如同变换一样，该操作(在这是指读取数据)可以发生多次。
 
 # Passing Functions to Spark
 
+Ⓔ Most of Spark’s transformations, and some of its actions, depend on passing in functions that are used by Spark to compute data. Each of the core languages has a slightly different mechanism for passing functions to Spark.
+
+Ⓒ 大多数的 Spark 的变换和一些动作都依赖于向 Spark 传入函数，这些函数被 Spark 用于计算数据。各个语言对于传递参数到 Spark 的机制有些细微的差异。
+
 ## Python
+
+Ⓔ In Python, we have three options for passing functions into Spark. For shorter functions, we can pass in lambda expressions, as we did in Example 3-2, and as Example 3-18 demonstrates. Alternatively, we can pass in top-level functions, or locally defined functions.
+
+Ⓒ 在 Python 中，传递函数到 Spark 有三种方式。对于较短的函数，可以通过 lambda 表达式来传递，见示例 3-2 和 3-18 所示。或者，也可以用顶级函数或者局部定义的函数。
+
+*Example 3-18. Passing functions in Python*
+```
+word = rdd.filter(lambda s: "error" in s)
+def containsError(s):
+    return "error" in s
+word = rdd.filter(containsError)
+```
+
+Ⓔ One issue to watch out for when passing functions is inadvertently serializing the object containing the function. When you pass a function that is the member of an object, or contains references to fields in an object (e.g.,  self.field ), Spark sends the entire object to worker nodes, which can be much larger than the bit of information you need (see Example 3-19). Sometimes this can also cause your program to fail, if your class contains objects that Python can’t figure out how to pickle.
+
+Ⓒ 当传递函数时，该函数包含要序列化的对象，那么有个问题要注意。当你传递的函数是一个对象的成员，或者包含了一个对象的字段的引用（比如 self.field），Spark 是发送整个对象到 worker 节点。这可能会比你需要的信息多得多（见示例3-19）。有时候这会导致你的程序出错，当你的类中包含了 python 不知道如何pickle 的对象的话。
+
+*Example 3-19. Passing a function with field references (don’t do this!)*
+```
+class SearchFunctions(object):
+def __init__(self, query):
+self.query = query
+def isMatch(self, s):
+return self.query in s
+def getMatchesFunctionReference(self, rdd):
+# Problem: references all of "self" in "self.isMatch"
+return rdd.filter(self.isMatch)
+def getMatchesMemberReference(self, rdd):
+# Problem: references all of "self" in "self.query"
+return rdd.filter(lambda x: self.query in x)
+```
+
+Ⓔ Instead, just extract the fields you need from your object into a local variable and pass that in, like we do in Example 3-20.
+
+Ⓒ 替代的做法是仅取出需要的字段保存到局部变量并传入，如示例 3-20。
+
+*Example 3-20. Python function passing without field references*
+```
+class WordFunctions(object):
+  ...
+  def getMatchesNoReference(self, rdd):
+    # Safe: extract only the field we need into a local variable
+    query = self.query
+    return rdd.filter(lambda x: query in x)
+```
 ## Scala
+
+Ⓔ In Scala, we can pass in functions defined inline, references to methods, or static functions as we do for Scala’s other functional APIs. Some other considerations come into play, though—namely that the function we pass and the data referenced in it needs to be serializable (implementing Java’s Serializable interface). Furthermore, as in Python, passing a method or field of an object includes a reference to that whole object, though this is less obvious because we are not forced to write these references with  self . As we did with Python in Example 3-20, we can instead extract the fields we need as local variables and avoid needing to pass the whole object containing them, as shown in Example 3-21.
+
+Ⓒ 在 Scala 中，我们可以通过定义内联函数，引用方法，或者像我们在 Scala 的其
+他功能的 API 中的静态函数等方式来传递函数。随之而来的其他问题，也就是
+我们传递的函数引用的数据需要序列化（通过 Java 的序列化接口）。此外，如
+同 Python 中传递方法或者对象的字段会包括整个对象，虽然这个不明显，因为
+我们没有强制引用 self。就像示例 3-20 那么处理，我们抽取需要的字段到局部变
+量来避免传递整个对象，见示例 3-21。
+
+*Example 3-21. Scala function passing*
+*示例 3-21 ： Scala 传入函数*
+```
+class SearchFunctions(val query: String) {
+def isMatch(s: String): Boolean = {
+s.contains(query)
+}
+def getMatchesFunctionReference(rdd: RDD[String]): RDD[String] = {
+// Problem: "isMatch" means "this.isMatch", so we pass all of "this"
+rdd.map(isMatch)
+}
+def getMatchesFieldReference(rdd: RDD[String]): RDD[String] = {
+// Problem: "query" means "this.query", so we pass all of "this"
+rdd.map(x => x.split(query))
+}
+def getMatchesNoReference(rdd: RDD[String]): RDD[String] = {
+// Safe: extract just the field we need into a local variable
+val query_ = this.query
+rdd.map(x => x.split(query_))
+}
+}
+```
+
+Ⓔ If  NotSerializableException occurs in Scala, a reference to a method or field in a nonserializable class is usually the problem. Note that passing in local serializable variables or functions that are members of a top-level object is always safe.
+
+Ⓒ 如果发生了 NotSerializableException 异常，通常是引用了不可序列化的类中的方
+法或字段。注意，传递顶级对象的局部可序列化的变量或函数总是安全的。
+
 ## Java
+
+Ⓔ In Java, functions are specified as objects that implement one of Spark’s function interfaces from the  org.apache.spark.api.java.function package. There are a number of different interfaces based on the return type of the function. We show the most basic function interfaces in Table 3-1, and cover a number of other function interfaces for when we need to return special types of data, like key/value data, in “Java” on page 43.
+
+Ⓒ 在 Java 中，函数是实现了 org.apache.spark.api.java 包中的 Spark 函数接口的对象。基于函数的返回类型有些不同的接口。表 3-1 中列出了最基本的函数接口以及一些我们需要的返回类似 key/value 的特定数据类型的函数接口。
+
+*** insert table 3-1 here ***
+
+Ⓔ We can either define our function classes inline as anonymous inner classes
+(Example 3-22), or create a named class (Example 3-23).
+
+Ⓒ 我们可以在类内部定义匿名的内联函数类，见示例 3-22，或者定义命名类，见示例 3-23。
+
+*Example 3-22. Java function passing with anonymous inner class*
+*示例 3-22 ： Java 通过内部匿名类传递函数*
+```
+RDD<String> errors = lines.filter(new Function<String, Boolean>() {
+  public Boolean call(String x) { return x.contains("error"); }
+});
+```
+
+*Example 3-23. Java function passing with named class*
+*示例 3-23 ： Java 通过命名类传递函数*
+```
+class ContainsError implements Function<String, Boolean>() {
+  public Boolean call(String x) { return x.contains("error"); }
+}
+
+RDD<String> errors = lines.filter(new ContainsError());
+```
+Ⓔ The style to choose is a personal preference, but we find that top-level named functions are often cleaner for organizing large programs. One other benefit of top-level functions is that you can give them constructor parameters, as shown in Example 3-24.
+
+Ⓒ 选择哪种风格是个人习惯。但是我们发现在组织大型程序的时候，顶级命名类通
+常更清晰。使用顶级命名类的另一个好处是你可以定义构造参数，如示例 3-24。
+
+*Example 3-24. Java function class with parameters*
+*示例 3-24 ： Java 带参数的函数类*
+```
+class Contains implements Function<String, Boolean>() {
+  private String query;
+  public Contains(String query) { this.query = query; }
+  public Boolean call(String x) { return x.contains(query); }
+}
+
+RDD<String> errors = lines.filter(new Contains("error"));
+```
+
+Ⓔ In Java 8, you can also use lambda expressions to concisely implement the function interfaces. Since Java 8 is still relatively new as of this writing, our examples use the more verbose syntax for defining classes in previous versions of Java. However, with lambda expressions, our search example would look like Example 3-25.
+
+Ⓒ 在 Java8 中，你也可以用 lambda 来简洁的实现函数接口。由于在本书写作时，Java8还相对较新，我们的例子使用的前一版本更冗长的语法来定义函数。然而，用lambda 表达式，我们的搜索例子可以像 3-25 这样写。
+
+*Example 3-25. Java function passing with lambda expression in Java 8*
+*示例 3-25 ： Java8 的 lambda 表达式传递函数*
+```
+RDD<String> errors = lines.filter(s -> s.contains("error"));
+```
+
+Ⓔ If you are interested in using Java 8’s lambda expression, refer to Oracle’s documentation and the Databricks blog post on how to use lambdas with Spark.
+
+Ⓒ 如果你对使用Java8的lambda表达式有兴趣，可以看看Oracle的文档和Databricks的关于 Spark 如何使用 lambda 表达式的博客。
+
+> Ⓔ Both anonymous inner classes and lambda expressions can refer‐
+ence any  final variables in the method enclosing them, so you can
+pass these variables to Spark just as in Python and Scala.
+
+> Ⓒ 用匿名内部类或者 lambda 表达式都可以引用方法内部的 final 变量。所以，你
+可以传递这些变量，就像 Python 和 Scala 中的一样。
 
 # Common Transformations and Actions
 
-## Basic RDDs
+Ⓔ In this chapter, we tour the most common transformations and actions in Spark. Additional operations are available on RDDs containing certain types of data—for example, statistical functions on RDDs of numbers, and key/value operations such as aggregating data by key on RDDs of key/value pairs. We cover converting between RDD types and these special operations in later sections.
+
+Ⓒ 在本章中，我们巡视一遍 Spark 中最常见的变换和动作。对包含某种类型数据的
+RDD 还有些另外的操作可用，比如 RDD 的数量的统计函数，对 RDD 的 key/value
+对按照 key 进行聚合的 key/value 操作。在后面的章节中我们会讲到 RDD 类型之
+间的转换和其他操作。
+
+## Basic RDDs   ||   基本 RDD
+
+Ⓔ We will begin by describing what transformations and actions we can perform on all RDDs regardless of the data.
+
+Ⓒ 我们先从对于不管是什么数据的 RDD 都适用的变换和动作说起。
+
+### Element-wise transformations   ||   元素级的变换
+
+Ⓔ The two most common transformations you will likely be using are  map() and  filter() (see Figure 3-2). The  map() transformation takes in a function and applies it to each element in the RDD with the result of the function being the new value of each element in the resulting RDD. The  filter() transformation takes in a function and returns an RDD that only has elements that pass the  filter() function.
+
+Ⓒ 两个最常见的你可能用到的变换是 map()和 filter()（见图 3-2）。map()变换传入
+一个函数，并将该函数应用到 RDD 中的每一个元素。函数的返回结果就是变换
+后的每个元素构成的新 RDD。filter()变换也是传入一个函数，返回的是该 RDD
+中仅能通过该函数的元素构成的新 RDD。
+
+![fig.3-2](../images/fig_3-2.png)
+*Figure 3-2. Mapped and filtered RDD from an input RDD*
+*图 3-2 从输入 RDD 中 map 和 filter 后的 RDD*
+
+Ⓔ We can use  map() to do any number of things, from fetching the website associated with each URL in our collection to just squaring the numbers. It is useful to note that map() ’s return type does not have to be the same as its input type, so if we had an RDD  String and our  map() function were to parse the strings and return a  Double , our input RDD type would be  RDD[String] and the resulting RDD type would be RDD[Double]
+
+Ⓒ 我们可以用 map()做任何的事情，从我们的集合中取出网站关联的每个 url 到计算平方数。map()的返回类型不必和输入类型相同，这很有用。如果我们有一个String 类型的 RDD，通过 map()将字符串解析后返回 double，那么我们的输入类型就是 RDD[String]，而结果类型就是 RDD[Double]。
+
+Ⓔ Let’s look at a basic example of  map() that squares all of the numbers in an RDD (Examples 3-26 through 3-28).
+
+Ⓒ 让我们看一个 map()的简单例子，计算 RDD 中所有数的平方（示例 3-36 到 3-28）。
+
+*Example 3-26. Python squaring the values in an RDD*
+*示例 3-26 ： Python 计算 RDD 中的平方值*
+```
+nums = sc.parallelize([1, 2, 3, 4])
+squared = nums.map(lambda x: x * x).collect()
+for num in squared:
+    print "%i " % (num)
+```
+
+*Example 3-27. Scala squaring the values in an RDD*
+*示例 3-27 ： Scala 计算 RDD 中的平方值*
+```
+val input = sc.parallelize(List(1, 2, 3, 4))
+val result = input.map(x => x * x)
+println(result.collect().mkString(","))
+```
+
+*Example 3-28. Java squaring the values in an RDD*
+*示例 3-28 ： Java 计算 RDD 中的平方值*
+```
+JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4));
+JavaRDD<Integer> result = rdd.map(new Function<Integer, Integer>() {
+  public Integer call(Integer x) { return x*x; }
+});
+System.out.println(StringUtils.join(result.collect(), ","));
+```
+Ⓔ Sometimes we want to produce multiple output elements for each input element. The operation to do this is called  flatMap() . As with  map() , the function we provide to flatMap() is called individually for each element in our input RDD. Instead of returning a single element, we return an iterator with our return values. Rather than producing an RDD of iterators, we get back an RDD that consists of the elements from all of the iterators. A simple usage of  flatMap() is splitting up an input string into words, as shown in Examples 3-29 through 3-31.
+
+Ⓒ 有时我们想为每个输入元素产生多个输出元素。这个操作叫做flatMap()。和map()一样，我们提供给 flatMap()的函数被输入 RDD 中的每个元素单独调用，但不是返回单个元素，而是返回的一个返回值的迭代器。与其说是产生了一个迭代器的RDD，不如说是得到了一个来自所有迭代器的元素组成的 RDD。flatMap()的一个简单用法是分割输入字符串到单词，见示例 3-29 到 3-31。
+
+*Example 3-29. flatMap() in Python, splitting lines into words*
+```
+lines = sc.parallelize(["hello world", "hi"])
+words = lines.flatMap(lambda line: line.split(" "))
+words.first() # returns "hello"
+```
+
+*Example 3-30. flatMap() in Scala, splitting lines into multiple words*
+```
+val lines = sc.parallelize(List("hello world", "hi"))
+val words = lines.flatMap(line => line.split(" "))
+words.first() // returns "hello"
+Common Transformations and Actions  |  35
+```
+
+*Example 3-31. flatMap() in Java, splitting lines into multiple words*
+```
+JavaRDD<String> lines = sc.parallelize(Arrays.asList("hello world", "hi"));
+JavaRDD<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
+  public Iterable<String> call(String line) {
+    return Arrays.asList(line.split(" "));
+  }
+});
+words.first(); // returns "hello"
+```
+
+Ⓔ We illustrate the difference between  flatMap() and  map() in Figure 3-3. You can think of  flatMap() as “flattening” the iterators returned to it, so that instead of ending up with an RDD of lists we have an RDD of the elements in those lists.
+
+Ⓒ 在图 3-3 中我们说明了 flatMap()和 map()之间的不同。你可以认为 flatMap()是“压扁”了返回给它的迭代器。所以最终得到的不是一个 list 的 RDD，而是这些 list 中的元素的 RDD。
+
+![fig.3-3](../images/fig_3-3.png)
+*Figure 3-3. Difference between flatMap() and map() on an RDD*
+
+### Pseudo set operations   ||   伪集合操作
+
+Ⓔ RDDs support many of the operations of mathematical sets, such as union and intersection, even when the RDDs themselves are not properly sets. Four operations are shown in Figure 3-4. It’s important to note that all of these operations require that the RDDs being operated on are of the same type.
+
+Ⓒ RDD 支持许多数学集合操作，比如并集合交集。甚至即使 RDD 本身不是严格的
+集合。图 3-4 列出了 4 个操作。这里的重点是所有这些操作要求被操作的 RDD
+是同一个类型。
+
+![fig.3-4](../images/fig_3-4.png)
+*Figure 3-4. Some simple set operations*
+
+Ⓔ The set property most frequently missing from our RDDs is the uniqueness of elements, as we often have duplicates. If we want only unique elements we can use the RDD.distinct() transformation to produce a new RDD with only distinct items. Note that  distinct() is expensive, however, as it requires shuffling all the data over the network to ensure that we receive only one copy of each element. Shuffling, and how to avoid it, is discussed in more detail in Chapter 4.
+
+Ⓒ 我们的 RDD 中最常丢失的集合属性是唯一性，经常会有重复元素。如果需要元素唯一可以用 RDD.distinct()变换来生成一个新的无重复元素的 RDD。然而，请注意 distinct()很昂贵，因为它需要所有的数据通过网络进行 Shuffling 以确保唯一性。我们将在第四章详细讨论关于 Shuffling 以及如何避免它。
+
+Ⓔ The simplest set operation is  union(other) , which gives back an RDD consisting of the data from both sources. This can be useful in a number of use cases, such as processing logfiles from many sources. Unlike the mathematical  union() , if there are duplicates in the input RDDs, the result of Spark’s  union() will contain duplicates (which we can fix if desired with  distinct() ).
+
+Ⓒ 最简单的集合运算是 union(other)，它返回一个由两个源的数据一起组成的 RDD。
+在有些情况下会有用，比如处理来自多个源的日志文件。和数学意义上的并集不
+同，如果在输入的多个 RDD 中有重复元素，则 Spark 的 union()的结果也有重复
+元素（可以通过 dictinct()修复）。
+
+Ⓔ Spark also provides an  intersection(other) method, which returns only elements in both RDDs.  intersection() also removes all duplicates (including duplicates from a single RDD) while running. While  intersection() and  union() are two similar concepts, the performance of  intersection() is much worse since it requires a shuffle over the network to identify common elements.
+
+Ⓒ Spark 也提供了 intersection(other)方法，它返回两个 RDD 中都存在的元素。
+Intersection()也会去除所有的重复元素（包括在单个 RDD 中存在的重复元素）。
+虽然 union()和 intersection()是相似的概念，但是 intersection()的性能要差得多。
+因为它需要通过网络 shuffle 数据来识别公共元素。
+
+
+Ⓔ Sometimes we need to remove some data from consideration. The  subtract(other) function takes in another RDD and returns an RDD that has only values present in the first RDD and not the second RDD. Like  intersection() , it performs a shuffle.
+
+Ⓒ 有时我们需要根据想法去掉一些数据。subtract(other)函数传入一个 RDD，返回
+的是只在第一个 RDD 中存在并且不在第二个 RDD 中存在的值的 RDD。就像
+intersection()一样，也需要 shuffle 数据。
+
+Ⓔ We can also compute a Cartesian product between two RDDs, as shown in Figure 3-5. The  cartesian(other) transformation returns all possible pairs of  (a, b) where  a is in the source RDD and  b is in the other RDD. The Cartesian product can be useful when we wish to consider the similarity between all possible pairs, such as computing every user’s expected interest in each offer. We can also take the Cartesian product of an RDD with itself, which can be useful for tasks like user similarity. Be warned, however, that the Cartesian product is very expensive for large RDDs.
+
+Ⓒ 我们还可以计算两个 RDD 的笛卡尔积，如图 3-5。cartesian(other)变换返回(a,b)的所有可能的组合，其中 a 在源 RDD 中，b 在另一个 RDD 中。笛卡尔积在我们考虑所有可能的组合的相似性的时候会有用，比如计算用户对每个机会感兴趣的预期。也可以对 RDD 自己做笛卡儿积，对于用户相似度类似的任务会有用。然而请注意，笛卡尔积操作对于太大的 RDD 来说非常昂贵。
+
+![fig.3-5](../images/fig_3-5.png)
+Figure 3-5. Cartesian product between two RDDs
+
+Ⓔ Tables 3-2 and 3-3 summarize these and other common RDD transformations.
+
+Ⓒ 表 3-2 和 3-3 汇总了常见的 RDD 变换。
+
+***insert Table 3-2 and Table 3-3 here***
+
+### Actions    ||
+Ⓔ The most common action on basic RDDs you will likely use is  reduce() , which takes a function that operates on two elements of the type in your RDD and returns a new element of the same type. A simple example of such a function is +, which we can use to sum our RDD. With  reduce() , we can easily sum the elements of our RDD, count the number of elements, and perform other types of aggregations (see Examples 3-32 through 3-34).
+
+Ⓒ 对于基本 RDD，你最常用到的动作是 reduce()。它传入一个函数，该函数对 RDD 中两个元素进行处理，并返回一个同类型的元素。这类函数的一个简单例子是+，用于计算 RDD 中元素的和。有了 reduce()，我们可以轻松的计算 RDD 中元素的和，元素的个数，以及其他类型的聚合（见示例 3-32 到 3-34）。
+
+*Example 3-32. reduce() in Python*
+```sum = rdd.reduce(lambda x, y: x + y)```
+
+*Example 3-33. reduce() in Scala*
+```val sum = rdd.reduce((x, y) => x + y)```
+
+*Example 3-34. reduce() in Java*
+```
+Integer sum = rdd.reduce(new Function2<Integer, Integer, Integer>() {
+  public Integer call(Integer x, Integer y) { return x + y; }
+});
+```
+Ⓔ Similar to  reduce() is  fold() , which also takes a function with the same signature as needed for  reduce() , but in addition takes a “zero value” to be used for the initial call on each partition. The zero value you provide should be the identity element for your operation; that is, applying it multiple times with your function should not change the value (e.g., 0 for +, 1 for *, or an empty list for concatenation).
+
+Ⓒ fold()函数和 reduce()函数类似，也是带了一个和 reduce()相同的函数参数，但是多了一个“零值”用于在每个分区调用时初始化。你提供的初值对你的操作来说是恒等值，也就是说，你的函数对其应用多次都不会改变该值（例如，0 对于加法操作，1 对于乘法操作，或者空列表对于连接操作）。
+
+> Ⓔ You can minimize object creation in  fold() by modifying and
+returning the first of the two parameters in place. However, you
+should not modify the second parameter.
+
+> Ⓒ 你可以在 fold()中通过修改和返回两个参数中的第一个参数来最小化对象创建。
+但是你不能修改第二个参数。
+
+Ⓔ Both  fold() and  reduce() require that the return type of our result be the same type as that of the elements in the RDD we are operating over. This works well for operations like  sum , but sometimes we want to return a different type. For example, when computing a running average, we need to keep track of both the count so far and the number of elements, which requires us to return a pair. We could work around this by first using  map() where we transform every element into the element and the number 1, which is the type we want to return, so that the  reduce() function can work on pairs.
+
+Ⓒ fold()和 reduce()都要求返回结果的类型和处理的 RDD 的类型相同。对于求和来说很好，但是有时候我们想返回不同的类型。比如，当计算一个运行时的平均值，我们需要同时记录总量和元素个数，这就要求我们返回一个对值(pair)。我们可以先用 map()对每个元素做变换形成元素和数字 1 的对值，也就是我们要返回的类型，然后就能用 reduce()进行处理。
+
+Ⓔ The  aggregate() function frees us from the constraint of having the return be the same type as the RDD we are working on. With  aggregate() , like  fold() , we supply an initial zero value of the type we want to return. We then supply a function to combine the elements from our RDD with the accumulator. Finally, we need to supply a second function to merge two accumulators, given that each node accumulates its own results locally.
+
+Ⓒ aggregate()函数将我们从被约束只能返回处理的 RDD 的相同类型 RDD 中解脱
+了。aggregate()和 fold()一样有一个初始的零值，但是可以是我们想要返回的类型。
+然后我们提供一个函数合并所有元素到累加器。最后，我们需要提供第二个函数
+来合并这些累加器，每个累加器都是它们本地结果数据的累积。
+
+Ⓔ We can use  aggregate() to compute the average of an RDD, avoiding a  map() before the  fold() , as shown in Examples 3-35 through 3-37.
+
+Ⓒ 我们用 aggregate()来计算 RDD 的平均值，避免用 folder()前还要先 map()，见示例 3-35 到 3-37。
+
+*Example 3-35. aggregate() in Python*
+```
+sumCount = nums.aggregate((0, 0),
+    (lambda acc, value: (acc[0] + value, acc[1] + 1),
+    (lambda acc1, acc2: (acc1[0] + acc2[0], acc1[1] + acc2[1]))))
+return sumCount[0] / float(sumCount[1])
+```
+
+*Example 3-36. aggregate() in Scala*
+```
+val result = input.aggregate((0, 0))(
+    (acc, value) => (acc._1 + value, acc._2 + 1),
+    (acc1, acc2) => (acc1._1 + acc2._1, acc1._2 + acc2._2))
+val avg = result._1 / result._2.toDouble
+```
+
+*Example 3-37. aggregate() in Java*
+```
+class AvgCount implements Serializable {
+  public AvgCount(int total, int num) {
+    this.total = total;
+    this.num = num;
+  }
+  public int total;
+  public int num;
+  public double avg() {
+    return total / (double) num;
+  }
+}
+Function2<AvgCount, Integer, AvgCount> addAndCount =
+  new Function2<AvgCount, Integer, AvgCount>() {
+    public AvgCount call(AvgCount a, Integer x) {
+      a.total += x;
+      a.num += 1;
+      return a;
+}
+};
+Function2<AvgCount, AvgCount, AvgCount> combine =
+  new Function2<AvgCount, AvgCount, AvgCount>() {
+    public AvgCount call(AvgCount a, AvgCount b) {
+      a.total += b.total;
+      a.num += b.num;
+      return a;
+}
+};
+AvgCount initial = new AvgCount(0, 0);
+AvgCount result = rdd.aggregate(initial, addAndCount, combine);
+System.out.println(result.avg());
+```
+
+Ⓔ Some actions on RDDs return some or all of the data to our driver program in the form of a regular collection or value.
+
+Ⓒ 有些 RDD 的动作会以常规的集合或值的形式返回部分或所有数据到驱动程序。
+
+Ⓔ The simplest and most common operation that returns data to our driver program is
+collect() , which returns the entire RDD’s contents.  collect() is commonly used in
+unit tests where the entire contents of the RDD are expected to fit in memory, as that
+makes it easy to compare the value of our RDD with our expected result.  collect()
+suffers from the restriction that all of your data must fit on a single machine, as it all
+needs to be copied to the driver.
+
+Ⓒ 最简单最常用的返回数据到驱动程序的操作是 collect()，返回整个 RDD 的数据。
+collect()通常用于单元测试，整个 RDD 的内容能放到内存中，这样就能轻易的比
+较 RDD 是否是我们期待的结果。collect()受限于所有的数据必须适合单机，因为
+所有的数据要复制到驱动程序所在机器上。
+
+Ⓔ take(n) returns  n elements from the RDD and attempts to minimize the number of
+partitions it accesses, so it may represent a biased collection. It’s important to note
+that these operations do not return the elements in the order you might expect.
+
+Ⓒ take(n)返回 RDD 中的 n 个元素，试图最小化访问的分区的数目。所以它返回的
+是有偏差的集合。重要的是知道这操作不会以你期待的顺序返回数据。
+
+Ⓔ These operations are useful for unit tests and quick debugging, but may introduce
+bottlenecks when you’re dealing with large amounts of data.
+
+Ⓒ 这些操作对于单元测试或者快速调试时很有用，但是处理大量数据时会有瓶颈。
+
+Ⓔ If there is an ordering defined on our data, we can also extract the top elements from
+an RDD using  top() .  top() will use the default ordering on the data, but we can sup‐
+ply our own comparison function to extract the top elements.
+
+Ⓒ 如果是已经有序的数据集，我们可以用top()函数从RDD中提取前面的若干元素。
+top()使用数据的默认顺序，但是你可以提供一个比较函数来提取前面的元素。
+
+Ⓔ Sometimes we need a sample of our data in our driver program. The  takeSam
+ple(withReplacement, num, seed) function allows us to take a sample of our data
+either with or without replacement.
+
+Ⓒ 有时在驱动程序中需要数据的样本。takeSample(withReplacement, num, seed)函数
+允许我们对数据采用，可以同时用随机数替换值或者不替换。
+
+Ⓔ Sometimes it is useful to perform an action on all of the elements in the RDD, but
+without returning any result to the driver program. A good example of this would be
+posting JSON to a webserver or inserting records into a database. In either case, the
+foreach() action lets us perform computations on each element in the RDD without
+bringing it back locally.
+
+Ⓒ 有时对 RDD 中所有元素都执行一个动作，但是不返回任何结果到驱动程序，也
+是有用的。一个不错的例子是发送 JSON 到 webserver 或者插入记录到数据库，
+这两种情况都能用 foreach()这个动作对每个元素执行计算，但是不返回到本地。
+
+Ⓔ The further standard operations on a basic RDD all behave pretty much exactly as
+you would imagine from their name.  count() returns a count of the elements, and
+countByValue() returns a map of each unique value to its count. Table 3-4 summari‐
+zes these and other actions.
+
+Ⓒ 对基本 RDD 的更多的标准操作的准确的行为你都能从它们的名字上想象的到。
+Count()返回元素的个数，countByValue()返回每个唯一值对应的个数的 map。表
+3-4 汇总了这些动作。
+
+*Table 3-4. Basic actions on an RDD containing {1, 2, 3, 3}*
+***insert table 3-4 here***
+
 ## Converting Between RDD Types
 
 # Persistence (Caching)
 # Conclusion
-Ⓔ
 
-Ⓒ 
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
 Ⓔ
 
-Ⓒ 
+Ⓒ
 
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
+
+Ⓔ
+
+Ⓒ
