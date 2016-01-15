@@ -4,25 +4,24 @@
 
 Ⓔ This chapter introduces Spark’s core abstraction for working with data, the resilient distributed dataset (RDD). An RDD is simply a distributed collection of elements. In Spark all work is expressed as either creating new RDDs, transforming existing RDDs, or calling operations on RDDs to compute a result. Under the hood, Spark automatically distributes the data contained in RDDs across your cluster and parallelizes the operations you perform on them.
 
-Ⓒ 本章介绍 Spark 处理数据的核心抽象：弹性分布式数据集(resilient distributed dataset, RDD)。简单来说 RDD 就是元素的分布式集合。在 Spark 中，所有的工作都被表达为创建新 RDD，对已存在的 RDD 做变换，或者对 RDD 调用某些操作来计算得到一个结果。在底层，Spark 将包含在 RDD 中的数据自动分布到你的整个集群，并将你对其执行的操作并行化。
+Ⓒ 本章介绍 Spark 处理数据的核心抽象：弹性分布式数据集(resilient distributed dataset, RDD)。简单来说 RDD 就是元素的分布式集合。在 Spark 中，所有的任务都可以被表达为创建新 RDD、对已有 RDD 进行变换、或者对 RDD 调用某些操作从而计算出一个结果。在这行为底层，Spark 将包含在 RDD 中的数据自动分布到整个集群，对集群并行化你要执行的操作。
 
 ⒺBoth data scientists and engineers should read this chapter, as RDDs are the core concept in Spark. We highly recommend that you try some of these examples in an interactive shell (see “Introduction to Spark’s Python and Scala Shells” on page 11). In addition, all code in this chapter is available in the book’s GitHub repository.
 
-Ⓒ 数据科学家和工程师都应该阅读本章，因为 RDD 是 Spark 的核心概念。我们强烈建议你在交互式 Shell 中尝试一些示例（见本书第 11 页的“Spark 的 Python 和 Scala Shell 简介”）。另外，本章所有的代码都在本书的 github 库有下载
+Ⓒ 数据科学家和工程师都应该阅读本章，因为 RDD 是 Spark 的核心概念。我们强烈建议你在交互式 Shell 中尝试一些示例（见本书第 11 页的“Spark 的 Python 和 Scala Shell 简介”）。另外，本章所有的代码都在本书的 github 库有下载。
 
 # RDD Basics   ||   RDD  基础
 
 Ⓔ An RDD in Spark is simply an immutable distributed collection of objects. Each RDD is split into multiple partitions, which may be computed on different nodes of the cluster. RDDs can contain any type of Python, Java, or Scala objects, including user-defined classes.
 
-Ⓒ Spark 中的 RDD，简单来说就是所有对象的一个不可变的分布式集合。每个 RDD 都被分割为多个分区，这就可以在集群的不同节点上进行计算。RDD 可以包含任何 Python，Java，Scala 对象类型，包括用户自定义类型。
+Ⓒ 简单的说 Spark 中的 RDD 就是所有对象的一个不可变的分布式集合。每个 RDD 都被分割为多个分区，这就可以在集群的不同节点上进行计算。RDD 可以包含任何 Python，Java，Scala 对象类型，包括用户自定义类型。
 
-Ⓔ Users create RDDs in two ways: by loading an external dataset, or by distributing a collection of objects (e.g., a list or set) in their driver program. We have already seen loading a text file as an RDD of strings using ```SparkContext.textFile()``` , as shown in Example 3-1.
+Ⓔ Users create RDDs in two ways: by loading an external dataset, or by distributing a collection of objects (e.g., a list or set) in their driver program. We have already seen loading a text file as an RDD of strings using ```SparkContext.textFile()``` , as shown in *Example 3-1* .
 
-Ⓒ 用户可以用两种方式创建 RDD：通过加载一个外部数据集，或者在驱动程序中分发一个对象集合（如 list 或 set）。如同示例 3-1 展示的，我们知道了使用SparkContext.textFile()函数加载一个文本文件作为一个字符串 RDD。
+Ⓒ 用户可以通过两种方式创建 RDD：加载一个外部数据集，或者在驱动程序中分发一个对象集合（如 list 或 set）。如同 *示例3-1* 展示的，我们知道了使用 ```SparkContext.textFile()``` 函数加载一个文本文件作为一个字符串 RDD。
 
 *Example 3-1. Creating an RDD of strings with* ```textFile()``` *in Python*
 *示例 3-1 ：在 Python 中用* ```textFile()``` *函数创建一个字符串 RDD*
-
 ```
 >>> lines = sc.textFile("README.md")
 ```
@@ -33,7 +32,6 @@
 
 *Example 3-2. Calling the filter() transformation*
 示例 3-2 ：调用 ```filter()``` 变换
-
 ```
 >>> pythonLines = lines.filter(lambda line: "Python" in line)
 ```
@@ -44,7 +42,6 @@
 
 *Example 3-3. Calling the ```first()``` action*
 *示例 3-3 ：调用 ```first()``` 动作*
-
 ```
 >>> pythonLines.first()
 u'## Interactive Python Shell'
@@ -54,7 +51,9 @@ u'## Interactive Python Shell'
 
 Ⓒ 变换和动作的区别源于 Spark 对 RDD 的不同计算方式。尽管任何时候你都可以定义一个新的 RDD，但是 Spark 总是以一种惰性(lazy)的方式计算它们，也就是它们被第一次用于动作的时候。刚开始接触到这种方式可能觉得不太寻常，但是当您开始处理大数据时就会有感觉了。举例来说，考虑下前面的*示例 3-2* 和*示例 3-3*，我们定义了一个文本文件 RDD 然后过滤出包含“Python”字符的行。如果当我们一写完 ```lines = sc.textFile(...)``` 语句，Spark 就立刻加载和保存整个文件的所有行的话，考虑到我们马上就要过虑掉很多的行，这会导致浪费很多存储空间。反过来说，一旦Spark知道了整个变换链，它就能只计算结果需要的数据。实际上，对于 ```first()``` 动作来说，Spark 只需要扫描文件直到它找到第一个符合条件的行就可以了，这甚至不需要读整个文件。
 
-########## have revised to here ##########
+##################################
+########    I ```Seika``` have revised to here #######
+##################################
 
 Ⓔ Finally, Spark’s RDDs are by default recomputed each time you run an action on them. If you would like to reuse an RDD in multiple actions, you can ask Spark to persist it using  RDD.persist() . We can ask Spark to persist our data in a number of different places, which will be covered in Table 3-6. After computing it the first time, Spark will store the RDD contents in memory (partitioned across the machines in your cluster), and reuse them in future actions. Persisting RDDs on disk instead of memory is also possible. The behavior of not persisting by default may again seem unusual, but it makes a lot of sense for big datasets: if you will not reuse the RDD, there’s no reason to waste storage space when Spark could instead stream through the data once and just compute the result. {footnote:The ability to always recompute an RDD is actually why RDDs are called “resilient.” When a machine holding RDD data fails, Spark uses this ability to recompute the missing partitions, transparent to the user.}
 
@@ -695,336 +694,139 @@ System.out.println(result.avg());
 
 Ⓒ 有些 RDD 的动作会以常规的集合或值的形式返回部分或所有数据到驱动程序。
 
-Ⓔ The simplest and most common operation that returns data to our driver program is
-collect() , which returns the entire RDD’s contents.  collect() is commonly used in
-unit tests where the entire contents of the RDD are expected to fit in memory, as that
-makes it easy to compare the value of our RDD with our expected result.  collect()
-suffers from the restriction that all of your data must fit on a single machine, as it all
-needs to be copied to the driver.
+Ⓔ The simplest and most common operation that returns data to our driver program is collect() , which returns the entire RDD’s contents.  collect() is commonly used in unit tests where the entire contents of the RDD are expected to fit in memory, as that makes it easy to compare the value of our RDD with our expected result.  collect() suffers from the restriction that all of your data must fit on a single machine, as it all needs to be copied to the driver.
 
-Ⓒ 最简单最常用的返回数据到驱动程序的操作是 collect()，返回整个 RDD 的数据。
-collect()通常用于单元测试，整个 RDD 的内容能放到内存中，这样就能轻易的比
-较 RDD 是否是我们期待的结果。collect()受限于所有的数据必须适合单机，因为
-所有的数据要复制到驱动程序所在机器上。
+Ⓒ 最简单最常用的返回数据到驱动程序的操作是 collect()，返回整个 RDD 的数据。collect()通常用于单元测试，整个 RDD 的内容能放到内存中，这样就能轻易的比较 RDD 是否是我们期待的结果。collect()受限于所有的数据必须适合单机，因为所有的数据要复制到驱动程序所在机器上。
 
-Ⓔ take(n) returns  n elements from the RDD and attempts to minimize the number of
-partitions it accesses, so it may represent a biased collection. It’s important to note
-that these operations do not return the elements in the order you might expect.
+Ⓔ take(n) returns  n elements from the RDD and attempts to minimize the number of partitions it accesses, so it may represent a biased collection. It’s important to note that these operations do not return the elements in the order you might expect.
 
-Ⓒ take(n)返回 RDD 中的 n 个元素，试图最小化访问的分区的数目。所以它返回的
-是有偏差的集合。重要的是知道这操作不会以你期待的顺序返回数据。
+Ⓒ take(n)返回 RDD 中的 n 个元素，试图最小化访问的分区的数目。所以它返回的是有偏差的集合。重要的是知道这操作不会以你期待的顺序返回数据。
 
-Ⓔ These operations are useful for unit tests and quick debugging, but may introduce
-bottlenecks when you’re dealing with large amounts of data.
+Ⓔ These operations are useful for unit tests and quick debugging, but may introduce bottlenecks when you’re dealing with large amounts of data.
 
 Ⓒ 这些操作对于单元测试或者快速调试时很有用，但是处理大量数据时会有瓶颈。
 
-Ⓔ If there is an ordering defined on our data, we can also extract the top elements from
-an RDD using  top() .  top() will use the default ordering on the data, but we can sup‐
-ply our own comparison function to extract the top elements.
+Ⓔ If there is an ordering defined on our data, we can also extract the top elements from an RDD using  top() .  top() will use the default ordering on the data, but we can supply our own comparison function to extract the top elements.
 
-Ⓒ 如果是已经有序的数据集，我们可以用top()函数从RDD中提取前面的若干元素。
-top()使用数据的默认顺序，但是你可以提供一个比较函数来提取前面的元素。
+Ⓒ 如果是已经有序的数据集，我们可以用top()函数从RDD中提取前面的若干元素。top()使用数据的默认顺序，但是你可以提供一个比较函数来提取前面的元素。
 
-Ⓔ Sometimes we need a sample of our data in our driver program. The  takeSam
-ple(withReplacement, num, seed) function allows us to take a sample of our data
-either with or without replacement.
+Ⓔ Sometimes we need a sample of our data in our driver program. The  takeSam ple(withReplacement, num, seed) function allows us to take a sample of our data either with or without replacement.
 
-Ⓒ 有时在驱动程序中需要数据的样本。takeSample(withReplacement, num, seed)函数
-允许我们对数据采用，可以同时用随机数替换值或者不替换。
+Ⓒ 有时在驱动程序中需要数据的样本。takeSample(withReplacement, num, seed)函数允许我们对数据采用，可以同时用随机数替换值或者不替换。
 
-Ⓔ Sometimes it is useful to perform an action on all of the elements in the RDD, but
-without returning any result to the driver program. A good example of this would be
-posting JSON to a webserver or inserting records into a database. In either case, the
-foreach() action lets us perform computations on each element in the RDD without
-bringing it back locally.
+Ⓔ Sometimes it is useful to perform an action on all of the elements in the RDD, but without returning any result to the driver program. A good example of this would be posting JSON to a webserver or inserting records into a database. In either case, the foreach() action lets us perform computations on each element in the RDD without bringing it back locally.
 
-Ⓒ 有时对 RDD 中所有元素都执行一个动作，但是不返回任何结果到驱动程序，也
-是有用的。一个不错的例子是发送 JSON 到 webserver 或者插入记录到数据库，
-这两种情况都能用 foreach()这个动作对每个元素执行计算，但是不返回到本地。
+Ⓒ 有时对 RDD 中所有元素都执行一个动作，但是不返回任何结果到驱动程序，也是有用的。一个不错的例子是发送 JSON 到 webserver 或者插入记录到数据库，这两种情况都能用 foreach()这个动作对每个元素执行计算，但是不返回到本地。
 
-Ⓔ The further standard operations on a basic RDD all behave pretty much exactly as
-you would imagine from their name.  count() returns a count of the elements, and
-countByValue() returns a map of each unique value to its count. Table 3-4 summari‐
-zes these and other actions.
+Ⓔ The further standard operations on a basic RDD all behave pretty much exactly as you would imagine from their name.  count() returns a count of the elements, and countByValue() returns a map of each unique value to its count. Table 3-4 summarizes these and other actions.
 
-Ⓒ 对基本 RDD 的更多的标准操作的准确的行为你都能从它们的名字上想象的到。
-Count()返回元素的个数，countByValue()返回每个唯一值对应的个数的 map。表
-3-4 汇总了这些动作。
+Ⓒ 对基本 RDD 的更多的标准操作的准确的行为你都能从它们的名字上想象的到。Count()返回元素的个数，countByValue()返回每个唯一值对应的个数的 map。表3-4 汇总了这些动作。
 
 *Table 3-4. Basic actions on an RDD containing {1, 2, 3, 3}*
 ***insert table 3-4 here***
 
 ## Converting Between RDD Types
 
+Ⓔ Some functions are available only on certain types of RDDs, such as  mean() and  variance() on numeric RDDs or  join() on key/value pair RDDs. We will cover these special functions for numeric data in Chapter 6 and pair RDDs in Chapter 4. In Scala and Java, these methods aren’t defined on the standard RDD class, so to access this additional functionality we have to make sure we get the correct specialized class.
+
+Ⓒ 有些函数只对某种类型的RDD可用，比如mean()和variance()对数值类型的RDD可用，而 join()对键值对类型的 RDD 可用。我们会在第六章涉及到数值 RDD，第四章涉及键值对的 RDD。在 Scala 和 Java 中，标准 RDD 没有定义这些方法。所以，要访问这些附加的方法，我们必须确保我们得到了正确的类型。
+
+### Scala
+
+Ⓔ In Scala the conversion to RDDs with special functions (e.g., to expose numeric functions on an  RDD[Double] ) is handled automatically using implicit conversions. As mentioned in “Initializing a SparkContext” on page 17, we need to add  import org.apache.spark.SparkContext._ for these conversions to work. You can see the implicit conversions listed in the  SparkContext object’s ScalaDoc. These implicits turn an RDD into various wrapper classes, such as  DoubleRDDFunctions (for RDDs of numeric data) and  PairRDDFunctions (for key/value pairs), to expose additional functions such as  mean() and  variance() .
+
+Ⓒ 在 Scala 中转换有特定功能的 RDD（比如对 ```RDD[Double]``` 暴露数值功能）是通过隐式转换自动处理的。在 17 页提到的“初始化 SparkContext”中，我们需要添加import org.apache.spark.SparkContext._ 以 便 这 些 转 换 能 工 作 。 你 可 以 看 看SparkContext 对象的 Scala 文档中列出的隐式转换。RDD 被隐式的转换成各种封装类，比如 DoubleRDDFunctions（数值数据的 RDD）和 PairRDDFunctions（键值对的 RDD）,以便暴露出类似 mean()或者 variance()等附加的功能。
+
+Ⓔ Implicits, while quite powerful, can sometimes be confusing. If you call a function like  mean() on an RDD, you might look at the Scaladocs for the RDD class and notice there is no  mean() function. The call manages to succeed because of implicit conversions between  RDD[Double] and  DoubleRDDFunctions . When searching for functions on your RDD in Scaladoc, make sure to look at functions that are available in these wrapper classes.
+
+Ⓒ 隐式转换虽然很强大，但有时会让人混淆。如果你对 RDD 调用 mean()类似的函数，可能你看到 Scala 的文档中的 RDD 类并没有 mean()函数。这个调用能成功是因为从 RDD[Double]到 DoubleRDDFunctions 之间的隐式转换。在 Scala 文档中查找 RDD 的这些函数时，确保看看这些封装类中可用的函数。
+
+### Java
+
+Ⓔ In Java the conversion between the specialized types of RDDs is a bit more explicit. In particular, there are special classes called  JavaDoubleRDD and  JavaPairRDD for RDDs of these types, with extra methods for these types of data. This has the benefit of giving you a greater understanding of what exactly is going on, but can be a bit more cumbersome.
+
+Ⓒ 在 Java 中，特定类型的 RDD 之间的转换要明显一些。特别是 JavaDoubleRDD 和 JavaPairRDD 这些对数据类型有额外的方法的类。好处是让你更好的理解转换时如何进行的，但是有一点点麻烦。
+
+Ⓔ To construct RDDs of these special types, instead of always using the  Function class we will need to use specialized versions. If we want to create a  DoubleRDD from an RDD of type  T , rather than using  Function<T, Double> we use  DoubleFunction<T> . Table 3-5 shows the specialized functions and their uses. We also need to call different functions on our RDD (so we can’t just create a  Double Function and pass it to  map() ). When we want a  DoubleRDD back, instead of calling map() , we need to call  mapToDouble() with the same pattern all of the other functions follow.
+
+Ⓒ 要构造这些特殊类型的 RDD，而不是总使用函数类，我们需要使用特定的版本。如果我们想从一个类型为 T 的 RDD 创建 DoubleRDD ， 我们使用DoubleFunction<T>而不是 Function<T,Double>。这些特殊函数及用法见表 3-5。我们同样需要对 RDD 调用不同的函数（我们不能只是创建一个 Double 函数传递给 map())。当我们想要一个 DoubleRDD 时，和下面的其他函数的模式一样，我们需要调用 mapToDouble()而不是 map()。
+
+*Table 3-5. Java interfaces for type-specific functions*
+insert Table  3-5 here
+
+Ⓔ We can modify Example 3-28, where we squared an RDD of numbers, to produce a JavaDoubleRDD , as shown in Example 3-38. This gives us access to the additional  DoubleRDD specific functions like  mean() and  variance() .
+
+Ⓒ 我们修改一下示例 3-28，在那里我们计算 RDD 中的数值的平方来生成一个新的JavaDoubleRDD，见示例 3-38。这使得我们可以访问 JavaDoubleRDD 的额外的特殊函数，如 mean()和 variance()等。
+
+*Example 3-38. Creating DoubleRDD in Java*
+```
+JavaDoubleRDD result = rdd.mapToDouble(
+new DoubleFunction<Integer>() {
+public double call(Integer x) {
+return (double) x * x;
+}
+});
+System.out.println(result.mean());
+```
+
+### Python
+
+Ⓔ The Python API is structured differently than Java and Scala. In Python all of the functions are implemented on the base RDD class but will fail at runtime if the type of data in the RDD is incorrect.
+
+Ⓒ Python API 的结构跟 Java 和 Scala 不同。在 Python 中，所有的函数都实现在基本 RDD 中，但是如果运行时 RDD 中的数据类型不正确会失败。
+
 # Persistence (Caching)
+
+Ⓔ As discussed earlier, Spark RDDs are lazily evaluated, and sometimes we may wish to use the same RDD multiple times. If we do this naively, Spark will recompute the RDD and all of its dependencies each time we call an action on the RDD. This can be especially expensive for iterative algorithms, which look at the data many times. Another trivial example would be doing a count and then writing out the same RDD, as shown in Example 3-39.
+
+Ⓒ 之前说过，Spark RDD 是延迟求值的，有时候我们会想多次使用同一个 RDD。如果我们这么天真的做了，那么每次对这个 RDD 执行动作时，Spark 都会重新计算这个 RDD 和所有依赖的 RDD。这对于迭代计算时尤其昂贵，它会查找这些数据很多次。另一个浅显的例子是对同一个 RDD 先计数然后输出，如示例 3-39。
+
+*Example 3-39. Double execution in Scala*
+```
+val result = input.map(x => x*x)
+println(result.count())
+println(result.collect().mkString(","))
+```
+
+Ⓔ To avoid computing an RDD multiple times, we can ask Spark to persist the data. When we ask Spark to persist an RDD, the nodes that compute the RDD store their partitions. If a node that has data persisted on it fails, Spark will recompute the lost partitions of the data when needed. We can also replicate our data on multiple nodes if we want to be able to handle node failure without slowdown. 
+
+Ⓒ 为避免多次计算同一个 RDD,我们可以要求 Spark 缓存该数据。当我们要求 Spark 缓存该 RDD 时，计算该 RDD 的节点都会保存它们的分区。如果缓存了该数据的节点出错了，Spark 会在需要的时候重新计算丢失的分区。如果我们想在节点失败是处理不会变慢，那么我们可以复制数据到多个节点。
+
+Ⓔ Spark has many levels of persistence to choose from based on what our goals are, as you can see in Table 3-6. In Scala (Example 3-40) and Java, the default  persist() will store the data in the JVM heap as unserialized objects. In Python, we always serialize the data that persist stores, so the default is instead stored in the JVM heap as pickled objects. When we write data out to disk or off-heap storage, that data is also always serialized.
+
+Ⓒ 基于我们的目的，Spark 有多个级别的持久策略可选择，见表 3-6。在 Scala(示例3-40)和 Java 中，默认的 persist()是存储数据在 JVM 中作为非序列化对象。Python中我们总是序列化数据持久保存，所以默认是在 JVM 中保存为序列化对象。当我们输出数据到磁盘或者堆外存储时，数据总是序列化的。
+
+Ⓔ Table 3-6. Persistence levels from org.apache.spark.storage.StorageLevel and pyspark.StorageLevel; if desired we can replicate the data on two machines by adding _2 to the end of the storage level
+
+***insert table here ***
+
+> Ⓔ Off-heap caching is experimental and uses Tachyon. If you are interested in off-heap caching with Spark, take a look at the Running Spark on Tachyon guide.
+
+> Ⓒ 堆外缓存正在测试，用的是 Tachyon。如果你对 Spark 的堆外缓存有兴趣，可以看看 Running Spark On Tachyon guide。
+
+*Example 3-40. persist() in Scala*
+```
+val result = input.map(x => x * x)
+result.persist(StorageLevel.DISK_ONLY)
+println(result.count())
+println(result.collect().mkString(","))
+```
+
+Ⓔ Notice that we called  persist() on the RDD before the first action. The  persist() call on its own doesn’t force evaluation.
+
+Ⓒ 注意，我们是在第一个动作之前对 RDD 调用的 persist()。persist()对其自身调用不会导致求值。
+
+Ⓔ If you attempt to cache too much data to fit in memory, Spark will automatically evict old partitions using a Least Recently Used (LRU) cache policy. For the memory-only storage levels, it will recompute these partitions the next time they are accessed, while for the memory-and-disk ones, it will write them out to disk. In either case, this means that you don’t have to worry about your job breaking if you ask Spark to cache too much data. However, caching unnecessary data can lead to eviction of useful data and more recomputation time. Finally, RDDs come with a method called  unpersist() that lets you manually remove them from the cache. 
+
+Ⓒ 如果你试图缓存太多的数据，一致超出了内存，Spark 会使用 LRU 缓存策略丢弃旧的分区。对于 memory-only 存储级别，Spark 会在需要访问数据时重新计算；而对于 memory-and-disk 级别，会将数据写到磁盘。无论哪种方式，你都不用担心是否缓存态度数据会使任务停止。然而，不必要的缓存数据会导致有用的数据被丢弃而进行过多的计算。
+
+Ⓔ Finally, RDDs come with a method called  unpersist() that lets you manually
+remove them from the cache.
+
+Ⓒ 最后，RDD 还提供了 unpersist()函数给你手动释放缓存。
+
 # Conclusion
 
+Ⓔ In this chapter, we have covered the RDD execution model and a large number of common operations on RDDs. If you have gotten here, congratulations—you’ve learned all the core concepts of working in Spark. In the next chapter, we’ll cover a special set of operations available on RDDs of key/value pairs, which are the most common way to aggregate or group together data in parallel. After that, we discuss input and output from a variety of data sources, and more advanced topics in working with SparkContext.
 
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
-
-Ⓔ
-
-Ⓒ
+Ⓒ 在本章中，我们讲到了 RDD 的执行模型和大量常见的 RDD 操作。如果你都掌握了，恭喜——你已经学到了所有 Spark 的核心概念。在下一章中，我们会讲一组针对键值对的 RDD 的特殊操作，这在聚合或分组并行计算时很常用。之后会讨论各种数据源的输入和输出，以及关于 SparkContext 的更进一步的主题。
