@@ -1,10 +1,11 @@
 ***
-# CHAPTER 1 Introduction to Data Analysis with Spark 
+# CHAPTER 1 Introduction to Data Analysis with Spark
+# 第一章 Spark 数据分析导论 
 ***
 
 本章从顶层概述什么是Apach Spark。如果你已很熟悉 Aparch Spark 及其组件，请跳过此章前往第二章。
 
-# 什么是 Apache Spark 
+# 什么是   ||   Apache Spark 
 
 Ⓔ Apache Spark is a cluster computing platform designed to be *fast* and *general purpose*.
 
@@ -38,7 +39,7 @@
 Ⓒ 最终，紧密整合的最大好处在于无缝整合不同处理模型的可能。例如，你可以在Spark中从源代码写一个使用机器学习的进行实时分类的模型。同时别的分析师能够实时的通过诸如SQL的方式(如，用非结构化数据结合查询数据)查询结果数据。此外，资深数据工程师和数据科学家可以通过Python shell for ad hoc analysis 访问相同的数据。而与此同时，IT团队正在同一个系统上进行着运维。
 
 Ⓔ Here we will briefly introduce each of Spark’s components, shown in Figure 1-1.
-Ⓒ 在此图1-1简明的列出了Spark的各个组件。
+Ⓒ 图1-1简要的列出了Spark的各个组件。
 
 ![fig.1-1](../images/fig_1-1.png "图 1-1. Spark堆栈")
 Ⓔ *Figure 1-1. The Spark stack*
@@ -84,7 +85,7 @@
 
 Ⓒ 在底层，Saprk设计时考虑到了能从一个计算节点扩大到数千个的能力。同时为了最大的满足其灵活性，Spark 可以在很多集群管理器之下运行，包括 Hadoop YARN、Apache Mesos 以及像Spark本身那个样的单点集群管理器（被称作 Standalone Scheduler）。如果您在一台新机器上安装Spark，Standalone Scheduler 会提供简单的方式让您上手；如果您已经拥有了Hadoop YARN 或者 Mesos 集群，Spark 依然可以支持这些集群，在其上运行你的Spark应用。第7章我们会详细介绍选择不同集群管理器的区别。
 
-# Spark的使用者和使用目的 Who Uses Spark, and for What?
+# Spark的使用者和使用目的   ||   Who Uses Spark, and for What?
 
 Ⓔ Because Spark is a general-purpose framework for cluster computing, it is used for a diverse range of applications. In the Preface we outlined two groups of readers that this book targets: data scientists and engineers. Let’s take a closer look at each group and how it uses Spark. Unsurprisingly, the typical use cases differ between the two, but we can roughly classify them into two categories, data science and data applications.
 

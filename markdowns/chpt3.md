@@ -85,9 +85,7 @@ which is then optimized and executed by Spark.
 3. 要求 Spark 对需要重用的任何中间 RDD 进行 ```persist()```；
 4. 启动类似 ```count()``` 和 ```first()``` 的动作开始并行计算，然后 Spark 会优化并执行。
 
-> Ⓔ ```cache()``` is the same as calling ```persist()``` with the default storage
-level.
-
+> Ⓔ ```cache()``` is the same as calling ```persist()``` with the default storage level.
 > Ⓒ ```cache()``` 和在默认存储级别上和调用 ```persist()``` 的效果一样。
 
 Ⓔ In the rest of this chapter, we’ll go through each of these steps in detail, and cover some of the most common RDD operations in Spark.
