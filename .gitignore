@@ -15,3 +15,12 @@ project/plugins/project/
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
+
+*.gz
+*.out
+*.ind
+*.ilg
+*.idx
+*.fls
+*.fdb_latexmk
+*.aux
