@@ -16,7 +16,7 @@
 
 # 下载 Spark
 
-Ⓔ The first step to using Spark is to download and unpack it. Let’s start by downloading a recent precompiled released version of Spark. Visit *http://spark.apache.org/downloads.html*, select the package type of “Pre-built for Hadoop 2.4 and later,” and click “Direct Download.” This will download a compressed TAR file, or tarball, called spark-1.2.0-bin-hadoop2.4.tgz.
+Ⓔ The first step to using Spark is to download and unpack it. Let’s start by downloading a recent precompiled released version of Spark. Visit *http://spark.apache.org/downloads.html*, select the package type of “Pre-built for Hadoop 2.4 and later”, and click “Direct Download.” This will download a compressed TAR file, or tarball, called spark-1.2.0-bin-hadoop2.4.tgz.
 
 使用Spark的第一步是下载并解压开来。我们从下载一个新近预编译版本的 Spark 开始。在浏览器中访问 *http://spark.apache.org/downloads.html* 选择“Pre-built for Hadoop 2.4 and later ” 安装包，点击 “ Direct Download ” 下载名称为 spark-1.2.0-bin-hadoop2.4.tgz 的压缩包。
 

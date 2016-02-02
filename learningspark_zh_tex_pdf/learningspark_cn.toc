@@ -1,11 +1,32 @@
-\contentsline {chapter}{\numberline {第一章\hspace {0.3em}}Introduction to Data Analysis with Spark}{5}{chapter.1}
-\contentsline {chapter}{\numberline {第二章\hspace {0.3em}}Downloading Spark and Getting Started}{7}{chapter.2}
-\contentsline {chapter}{\numberline {第三章\hspace {0.3em}}Programming with RDDs}{9}{chapter.3}
-\contentsline {chapter}{\numberline {第四章\hspace {0.3em}}Programming with Key/Value Pairs}{11}{chapter.4}
-\contentsline {chapter}{\numberline {第五章\hspace {0.3em}}Loading and Saving Your Data}{13}{chapter.5}
-\contentsline {chapter}{\numberline {第六章\hspace {0.3em}}Advanced Spark Programming}{15}{chapter.6}
-\contentsline {chapter}{\numberline {第七章\hspace {0.3em}}Running on a Cluster}{17}{chapter.7}
-\contentsline {chapter}{\numberline {第八章\hspace {0.3em}}Tuning and Debugging Spark}{19}{chapter.8}
-\contentsline {chapter}{\numberline {第九章\hspace {0.3em}}Spark SQL}{21}{chapter.9}
-\contentsline {chapter}{\numberline {第十章\hspace {0.3em}}Spark Streaming}{23}{chapter.10}
-\contentsline {chapter}{\numberline {第十一章\hspace {0.3em}}Maching Learning with MLlib}{25}{chapter.11}
+\contentsline {chapter}{\numberline {第一章\hspace {0.3em}}Introduction to Data Analysis with Spark || Saprk数据分析导论}{5}{chapter.1}
+\contentsline {section}{\numberline {1.1}What is Apache Spark | 什么是 Apache Spark}{6}{section.1.1}
+\contentsline {section}{\numberline {1.2}A unified Stack | 统一的堆栈}{7}{section.1.2}
+\contentsline {subsection}{\numberline {1.2.1}Spark 核心组件 (Spark Core)}{8}{subsection.1.2.1}
+\contentsline {subsection}{\numberline {1.2.2}Spark SQL}{8}{subsection.1.2.2}
+\contentsline {subsection}{\numberline {1.2.3}Spark Streaming}{9}{subsection.1.2.3}
+\contentsline {subsection}{\numberline {1.2.4}Spark MLlib | Spark 机器学习库 (MLlib)}{9}{subsection.1.2.4}
+\contentsline {subsection}{\numberline {1.2.5}GraphX}{10}{subsection.1.2.5}
+\contentsline {subsection}{\numberline {1.2.6}Cluster Managers | 集群管理器}{10}{subsection.1.2.6}
+\contentsline {section}{\numberline {1.3}Spark的使用者和使用目的 Who Uses Spark, and for What?}{11}{section.1.3}
+\contentsline {subsection}{\numberline {1.3.1}数据科学家的任务 Data Science Tasks}{11}{subsection.1.3.1}
+\contentsline {subsection}{\numberline {1.3.2}数据处理应用 Data Processing Applications}{12}{subsection.1.3.2}
+\contentsline {section}{\numberline {1.4}A Brief History of Spark | Spark简史}{13}{section.1.4}
+\contentsline {section}{\numberline {1.5}Spark Versions and Releases | Spark的发行版}{14}{section.1.5}
+\contentsline {section}{\numberline {1.6}Storage Layers for Spark | Spark的存储层}{15}{section.1.6}
+\contentsline {chapter}{\numberline {第二章\hspace {0.3em}}Downloading Spark and Getting Started}{17}{chapter.2}
+\contentsline {section}{\numberline {2.1}下载 Spark}{18}{section.2.1}
+\contentsline {section}{\numberline {2.2}Introduction to Spark's Python and Scala Shells | Spark 的 Python 和 Scala 交互式 Shell}{20}{section.2.2}
+\contentsline {section}{\numberline {2.3}Introduction to Core Spark Concepts | Spark 核心概念综述}{25}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}Standalone Applications | 独立应用程序}{28}{subsection.2.3.1}
+\contentsline {subsection}{\numberline {2.3.2}Initializing a SparkContext | 初始化 SparkContext}{29}{subsection.2.3.2}
+\contentsline {subsection}{\numberline {2.3.3}创建独立（Standalone）应用程序}{30}{subsection.2.3.3}
+\contentsline {section}{\numberline {2.4}结论}{33}{section.2.4}
+\contentsline {chapter}{\numberline {第三章\hspace {0.3em}}Programming with RDDs}{35}{chapter.3}
+\contentsline {chapter}{\numberline {第四章\hspace {0.3em}}Programming with Key/Value Pairs}{37}{chapter.4}
+\contentsline {chapter}{\numberline {第五章\hspace {0.3em}}Loading and Saving Your Data}{39}{chapter.5}
+\contentsline {chapter}{\numberline {第六章\hspace {0.3em}}Advanced Spark Programming}{41}{chapter.6}
+\contentsline {chapter}{\numberline {第七章\hspace {0.3em}}Running on a Cluster}{43}{chapter.7}
+\contentsline {chapter}{\numberline {第八章\hspace {0.3em}}Tuning and Debugging Spark}{45}{chapter.8}
+\contentsline {chapter}{\numberline {第九章\hspace {0.3em}}Spark SQL}{47}{chapter.9}
+\contentsline {chapter}{\numberline {第十章\hspace {0.3em}}Spark Streaming}{49}{chapter.10}
+\contentsline {chapter}{\numberline {第十一章\hspace {0.3em}}Maching Learning with MLlib}{51}{chapter.11}

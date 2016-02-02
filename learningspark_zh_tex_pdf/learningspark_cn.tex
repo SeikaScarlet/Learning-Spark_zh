@@ -2,7 +2,7 @@
 % Encoding: UTF8
 % SEIKA 2015
 
-\documentclass[b5paper,11pt,twoside]{ctexbook}
+\documentclass[a4paper,11pt,twoside]{ctexbook}
 
 \usepackage{makeidx}
 \makeindex
@@ -97,11 +97,13 @@
 
 %%%% 第一章
 \newpage
-\chapter{Introduction to Data Analysis with Spark}
-
-% \include{get_started/c1s01_introduction}
+\chapter {Introduction to Data Analysis with Spark  ||  Saprk数据分析导论}
+\label{spark_data_analysis_introduction}
+\include{chapter_1}
 
 \chapter{Downloading Spark and Getting Started}
+\label{downloading-install-spark}
+\include{chapter_2}
 
 \chapter{Programming with RDDs}
 
@@ -124,4 +126,3 @@
 \printindex
 
 \end{document}
-

@@ -4,11 +4,11 @@
 
 Ⓔ MLlib is Spark 's library of machine learning functions. Designed to run in parallel on clusters, MLlib contains a variety of learning algorithms and is accessible from all of Sparks programming languages. This chapter will show you how to call it in your own programs, and offer common usage tips.
 
-Ⓒ MLib是Spark上实现机器学习函数集的库。MLib被设计成能在集群上并行运行，其中包含了大量的学习算法，并可被spark所有编程语言调用。本章将向您讲解如何在程序中调用Mlib，以及该库常见的使用方法。
+Ⓒ MLlib是用于在Spark上实现机器学习函数的库。MLlib被设计成能在集群上并行运行，其中包含了大量的学习算法，并可被spark所有编程语言调用。本章将向您讲解如何在程序中调用MLlib，以及该库常见的使用方法。
 
-Machine learning itself is a topic large enough to fill many books [1][footnote Some examples from O'Reilly included Machine Learning with R and Machine Learning for Hackers.], so unfortunately, in this chapter, we will not have the space to explain machine learning in detail. If you are familiar with machine learning, however, this chapter will explain how to use it in Spark; and even if you are new to it, you should be able to combine the material here with other introductory material. This chapter is most relevant to data scientists with a machine learning background looking to use Spark, as well as engineers working with a machine learning expert.
-机器学习本身就是一门博大精深的学科，因此很遗憾我们无法在本书中向您一一道尽机器学习。相反，如果您已经很熟悉机器学习，这章将向您阐述如何用Spark进行机器学习；但是，如果你对机器学习还很陌生，你可能需要将本章的内容结合到其它机器学习导论中理解。本章的内容面向具备机器学习背景而想使用spark的数据科学家，以及与那些与机器学习专家团队协作的数据工程师。
-# Overview    ||   综述
+Ⓔ Machine learning itself is a topic large enough to fill many books [1][footnote Some examples from O'Reilly included Machine Learning with R and Machine Learning for Hackers.], so unfortunately, in this chapter, we will not have the space to explain machine learning in detail. If you are familiar with machine learning, however, this chapter will explain how to use it in Spark; and even if you are new to it, you should be able to combine the material here with other introductory material. This chapter is most relevant to data scientists with a machine learning background looking to use Spark, as well as engineers working with a machine learning expert.
+Ⓒ 机器学习本身就是一门博大精深的学科，因此很遗憾我们无法在本书中向您一一道尽机器学习。相反，如果您已经很熟悉机器学习，这章将向您阐述如何用Spark进行机器学习；但是，如果你对机器学习还很陌生，你可能需要将本章的内容结合到其它机器学习导论中理解。本章的内容面向具备机器学习背景而想使用spark的数据科学家，以及与那些与机器学习专家团队协作的数据工程师。
+# Overview    ||   总览
 
 MLlib's design and philosophy are simple: it lets you invoke various algorithms on distributed datasets, representing all data as RDDs. MLlib introduces a few data types (e.g., labeled points and vectors), but at the end of the day, it is simply a set of functions to call on RDDs. Fore example, to use MLlib for a text classification task (e.g., identifying spammy emails), you might do  the following:
 
@@ -58,7 +58,9 @@ Finally, most learning algorithms have multiple parameters that can affect resul
 
 ## Example: Spam Classification  |  案例：垃圾邮件分类
 
-As a quick example of MLlib, we show a very simple program for building a spam classifier (Examples 11-1 through 11-3). This program uses two MLlib algorithms: HashingTF, which builds term frequency feature vectors from text data, and Logistic RegressionWithSGD, which implements the logistic regression procedure using sto‐ chastic gradient descent (SGD). We assume that we start with two files, spam.txt and normal.txt, each of which contains examples of spam and non-spam emails, one per line. We then turn the text in each file into a feature vector with TF, and train a logis‐ tic regression model to separate the two types of messages. The code and data files are available in the book’s Git repository.
+As a quick example of MLlib, we show a very simple program for building a spam classifier (Examples 11-1 through 11-3). This program uses two MLlib algorithms: HashingTF, which builds term frequency feature vectors from text data, and Logistic RegressionWithSGD, which implements the logistic regression procedure using stochastic gradient descent (SGD). We assume that we start with two files, spam.txt and normal.txt, each of which contains examples of spam and non-spam emails, one per line. We then turn the text in each file into a feature vector with TF, and train a logistic regression model to separate the two types of messages. The code and data files are available in the book’s Git repository.
+
+我们在此展示一个简单的程序实现垃圾分类作为MLlib的简单案例 (示例 11-1 至 11-3)。 这个程序使用了MLlib的两个算法：（1）HashingTF，用于从文本数据建立特征向量的词频；（2）RegressionWithSGD，基于随机梯度下降法（SGD）实现逻辑回归。我们假设手头有两个文件，spam.txt 和 normal.txt，各自包含了垃圾邮件和非垃圾邮件的文本样本，每行一个词条。我们使用TF将每个文本文件转换为特征向量，并训练一个逻辑回归模型用于区分两种不同的信息。这个程序的代码和数据可以在本书的Git版本库中找到。
 
 *Example 11-1. Spam classifier in Python*
 
@@ -75,7 +77,9 @@ val negativeExamples = normalFeatures.map(features => LabeledPoint(0, features))
 
 *Example 11-3 Spam classifier in Java *
 
-As you can see, the code is fairly similar in all the languages. It operates directly on RDDs—in this case, of strings (the original text) and LabeledPoints (an MLlib data type for a vector of features together with a label).
+As you can see, the code is fairly similar in all the languages. It operates directly on RDDs—in this case, of strings (the original text) and ```LabeledPoints``` (an MLlib data type for a vector of features together with a label).
+
+可以看出，各种语言的代码是极其相似的。它们都是直接操作RDD---在这个案例中就是（最原始的）字符串和```LabeledPoints```（一种MLlib中表示特征向量与对应标签集合的数据类型）。
 
 # Data Types  |  数据类型
 
@@ -96,6 +100,7 @@ Most algorithms work directly on RDDs of Vectors, LabeledPoints, or Ratings. You
 
 ## Working with Vectors  |  使用向量
 
+There are a few points to note for the ```Vector``` class in MLlib, which will be the most commonly used one.
 
 ***
 
